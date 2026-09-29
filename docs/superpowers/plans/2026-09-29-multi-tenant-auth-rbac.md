@@ -91,16 +91,16 @@ git commit -m "feat(auth): add supabase ssr client and auth helper services"
 - Consumes: Cookies de sesión de Supabase y `caja_session`.
 - Produces: Interceptación global para `/superadmin/**`, `/admin/**`, `/caja/**`, `/login`, `/registro`.
 
-- [ ] **Step 1: Escribir `src/middleware.ts`**
+- [x] **Step 1: Escribir `src/middleware.ts`**
 Implementar la regla de coincidencia:
   - Si ruta inicia con `/superadmin`, verificar si el usuario tiene rol `superadmin`.
   - Si ruta inicia con `/admin/[slug]`, verificar sesión y que el `slug` coincida con el comercio asignado (o `superadmin`). Si no coincide, redirigir a `/login?error=forbidden`.
   - Si ruta es `/login` o `/registro` y el usuario ya está autenticado, redirigir a su panel correspondiente.
 
-- [ ] **Step 2: Probar middleware localmente**
+- [x] **Step 2: Probar middleware localmente**
 Intentar acceder a `/superadmin` sin sesión y verificar redirección a `/login`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 ```bash
 git add src/middleware.ts
 git commit -m "feat(security): implement route protection edge middleware"
