@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Plataforma de Fidelización de Clientes Local
 
-## Getting Started
+> **Proyecto de Negocio Tecnológico Local:** Sistema de fidelización y club de beneficios marca blanca para comercios de proximidad (gastronomía, minimercados, servicios y tiendas).
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 📌 Documento Clave para Analizar
+Antes de revisar el código, lee el **Estudio de Viabilidad y Modelo de Negocio**:
+👉 **[Leer Informe de Factibilidad y Arquitectura (INFORME_FACTIBILIDAD.md)](./INFORME_FACTIBILIDAD.md)**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+En dicho informe se detalla:
+* **Costes iniciales:** Prácticamente **$0 USD/mes** para arrancar (aprovechando capas gratuitas de Vercel y Supabase).
+* **Flujo de caja:** Cómo se cargan puntos en **3 segundos** en el mostrador para no demorar la fila.
+* **Margen comercial:** Por qué 2 o 3 comercios suscriptores pagan el 100% de la operación y el resto es ganancia recurrente.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🏗️ Estructura del Software Desarrollado
 
-## Learn More
+El sistema ya cuenta con sus 3 módulos operativos funcionales:
 
-To learn more about Next.js, take a look at the following resources:
+| Módulo | Ruta Local | Descripción |
+| :--- | :--- | :--- |
+| **🌐 Landing Comercial** | `/` | Web de venta dirigida a dueños de comercios locales para captar clientes y agendar demos. |
+| **📱 PWA de Clientes** | `/club/cafe-paris` | Tarjeta digital de puntos, ruleta de la suerte, catálogo de premios y canjes con confeti. |
+| **🖥️ Mostrador de Caja** | `/caja/cafe-paris` | Terminal ultra rápida para el cajero (búsqueda por WhatsApp y carga de puntos en 1 clic). |
+| **🗄️ Base de Datos** | `supabase-schema.sql` | Script SQL multi-comercio listo para pegar en Supabase (PostgreSQL). |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 💻 Cómo Ejecutar el Proyecto
 
-## Deploy on Vercel
+1. Clonar el repositorio:
+   ```bash
+   git clone <URL_DEL_REPOSITORIO>
+   cd Fidelización
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. Instalar dependencias:
+   ```bash
+   npm install
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. Iniciar el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+
+4. Abrir en el navegador:
+   * **Landing Comercial:** [http://localhost:3000](http://localhost:3000)
+   * **App Cliente Demo:** [http://localhost:3000/club/cafe-paris](http://localhost:3000/club/cafe-paris)
+   * **Caja Mostrador Demo:** [http://localhost:3000/caja/cafe-paris](http://localhost:3000/caja/cafe-paris)
+
+---
+
+## 🛠️ Stack Tecnológico
+* **Frontend:** Next.js 16 + React + TypeScript + Tailwind CSS
+* **Librerías:** Lucide Icons, Canvas Confetti, QRCode React
+* **Base de datos / BaaS:** Supabase (PostgreSQL) + LocalStorage fallback
