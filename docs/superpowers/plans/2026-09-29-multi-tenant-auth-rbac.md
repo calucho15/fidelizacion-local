@@ -144,16 +144,16 @@ git commit -m "feat(ui): add unified boutique login page with role tabs and cash
 **Interfaces:**
 - Produces: Asistente de alta rápida para nuevos comercios (datos de cuenta, nombre de local, rubro, PIN inicial) con 14 días de prueba gratuita.
 
-- [ ] **Step 1: Crear `src/app/registro/page.tsx`**
+- [x] **Step 1: Crear `src/app/registro/page.tsx`**
 Formulario en 3 pasos: 1) Cuenta de usuario, 2) Datos de la tienda, 3) Configuración de bienvenida y PIN de mostrador.
 
-- [ ] **Step 2: Conectar con creación en base de datos**
+- [x] **Step 2: Conectar con creación en base de datos**
 Generar el nuevo comercio con `estado_cuenta = 'trial'`, `trial_expira_at = NOW() + 14 días`, registrar el perfil y redirigir inmediatamente a su nuevo panel `/admin/[slug]`.
 
-- [ ] **Step 3: Enlazar CTA de la Landing Page**
+- [x] **Step 3: Enlazar CTA de la Landing Page**
 En [src/app/page.tsx](file:///c:/Users/Carlo/Desktop/Antigravity/Fidelizaci%C3%B3n/src/app/page.tsx), actualizar los botones de "Crear mi club" o "Comenzar gratis" para que apunten a `/registro`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add src/app/registro/page.tsx src/app/page.tsx
 git commit -m "feat(onboarding): add self-serve 14-day trial registration wizard"

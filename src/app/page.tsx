@@ -57,30 +57,31 @@ export default function LandingComercial() {
           <div className="flex items-center gap-2 text-xs font-semibold">
             <Link
               href="/club/fabbrica-burger"
-              className="text-stone-300 hover:text-white px-3 py-1.5 rounded-full transition hidden sm:inline-block"
+              className="text-stone-300 hover:text-white px-2.5 py-1.5 rounded-full transition hidden md:inline-block"
             >
-              App Cliente
+              Demo Cliente
             </Link>
             <Link
-              href="/caja/fabbrica-burger"
-              className="text-stone-300 hover:text-white px-3 py-1.5 rounded-full transition hidden md:inline-block"
+              href="/login"
+              className="text-stone-300 hover:text-white px-3 py-1.5 rounded-full transition"
             >
-              Terminal Caja
+              Iniciar Sesión
             </Link>
             <Link
-              href="/admin/fabbrica-burger"
-              className="text-amber-400 hover:text-amber-300 px-3 py-1.5 rounded-full transition hidden sm:inline-block"
+              href="/registro"
+              className="btn-tactile px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-full transition flex items-center gap-1.5 shadow-sm"
             >
-              Panel Dueño
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Crear Club Gratis</span>
             </Link>
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-tactile px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-full transition flex items-center gap-1.5 shadow-sm"
+              className="text-stone-400 hover:text-white p-1.5 rounded-full transition hidden sm:inline-flex items-center"
+              title="Contactar por WhatsApp"
             >
-              <MessageCircle className="w-3.5 h-3.5" />
-              <span>Contactar</span>
+              <MessageCircle className="w-4 h-4" />
             </a>
           </div>
         </nav>
@@ -110,20 +111,21 @@ export default function LandingComercial() {
 
             <div className="pt-2 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <Link
+                href="/registro"
+                className="btn-tactile px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 text-sm md:text-base"
+              >
+                <Sparkles className="w-4 h-4 text-stone-950" />
+                <span>Crear mi Club (14 Días Gratis)</span>
+                <ArrowRight className="w-4 h-4 text-stone-950" />
+              </Link>
+
+              <Link
                 href="/club/fabbrica-burger"
-                className="btn-tactile px-6 py-3.5 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-stone-900/10 text-sm md:text-base"
+                className="btn-tactile px-5 py-3.5 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm md:text-base shadow-sm"
               >
                 <Smartphone className="w-4 h-4 text-amber-400" />
                 <span>Ver Demo Cliente en Vivo</span>
                 <ChevronRight className="w-4 h-4 text-stone-400" />
-              </Link>
-
-              <Link
-                href="/caja/fabbrica-burger"
-                className="btn-tactile px-5 py-3.5 bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 font-bold rounded-xl flex items-center justify-center gap-2 text-sm md:text-base shadow-sm"
-              >
-                <Store className="w-4 h-4 text-stone-600" />
-                <span>Terminal de Mostrador</span>
               </Link>
             </div>
 
@@ -453,15 +455,13 @@ export default function LandingComercial() {
               </ul>
             </div>
 
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/registro"
               className="btn-tactile mt-8 w-full py-3 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-xl flex items-center justify-center gap-2 text-xs transition shadow-sm"
             >
-              <span>Solicitar Alta para mi Comercio</span>
+              <span>Comenzar Prueba Gratis (14 Días)</span>
               <ArrowRight className="w-4 h-4" />
-            </a>
+            </Link>
           </div>
 
           {/* Plan Cadena / Multi-sucursal */}
@@ -525,7 +525,13 @@ export default function LandingComercial() {
             </div>
           </div>
 
-          <div className="flex items-center gap-6 font-medium">
+          <div className="flex items-center gap-5 font-medium flex-wrap">
+            <Link href="/registro" className="text-amber-700 hover:text-amber-800 font-bold transition">
+              Crear Club Gratis
+            </Link>
+            <Link href="/login" className="hover:text-stone-900 transition">
+              Iniciar Sesión
+            </Link>
             <Link href="/club/fabbrica-burger" className="hover:text-stone-900 transition">
               App Cliente
             </Link>
@@ -533,7 +539,7 @@ export default function LandingComercial() {
               Terminal Mostrador
             </Link>
             <Link href="/admin/fabbrica-burger" className="hover:text-stone-900 transition">
-              Panel Gerencial
+              Panel Dueño
             </Link>
           </div>
 

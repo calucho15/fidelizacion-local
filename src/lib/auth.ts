@@ -226,35 +226,58 @@ export async function registerNewStore(data: {
   nombreComercio: string;
   rubro: string;
   pin?: string;
+  slug?: string;
+  logo_url?: string;
+  color_primario?: string;
+  puntos_bienvenida?: number;
+  premio_bienvenida?: string;
 }): Promise<{ success: boolean; comercioSlug?: string; error?: string }> {
   if (!data.email || !data.password || !data.nombreDueno || !data.nombreComercio) {
     return { success: false, error: 'Por favor complete todos los campos obligatorios.' };
   }
 
   try {
-    // 1. Generar slug a partir del nombre del comercio
-    let slug = data.nombreComercio
+    // 1. Generar slug a partir del nombre o usar el ingresado
+    let rawSlug = (data.slug?.trim() || data.nombreComercio)
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    if (!slug) {
-      slug = `club-${Math.floor(1000 + Math.random() * 9000)}`;
-    }
+    let slug = rawSlug || `club-${Math.floor(1000 + Math.random() * 9000)}`;
 
     // 2. Crear registro de comercio con trial activo de 14 días
     const nuevoComercio = await LoyaltyStore.createComercio({
       slug,
       nombre: data.nombreComercio.trim(),
       rubro: data.rubro || 'general',
+      logo_url: data.logo_url || '🏪',
+      color_primario: data.color_primario || '#f59e0b',
+      puntos_bienvenida: typeof data.puntos_bienvenida === 'number' ? data.puntos_bienvenida : 50,
       pin_mostrador: data.pin || '1234',
       pin_hash: data.pin || '1234',
       estado_cuenta: 'trial',
       trial_expira_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       plan: 'starter',
     });
+
+    // Crear premio inicial de bienvenida si se especificó
+    if (data.premio_bienvenida) {
+      try {
+        const supabase = await createSupabaseServerClient();
+        await supabase.from('premios').insert({
+          comercio_id: nuevoComercio.id,
+          titulo: data.premio_bienvenida,
+          descripcion: 'Premio especial de bienvenida para miembros del club',
+          puntos_requeridos: 100,
+          activo: true,
+          orden: 1,
+        });
+      } catch (errPremio) {
+        console.warn('Omitiendo inserción de premio de bienvenida en Supabase', errPremio);
+      }
+    }
 
     // 3. Crear usuario en Supabase Auth y perfil RBAC si está disponible
     let authUserId = '';
