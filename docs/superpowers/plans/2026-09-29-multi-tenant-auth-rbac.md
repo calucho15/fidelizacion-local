@@ -118,16 +118,16 @@ git commit -m "feat(security): implement route protection edge middleware"
 - Consumes: `loginOwner` y `verifyCashierPin` de `src/lib/auth.ts`.
 - Produces: Interfaz de login con pestañas (Dueño/Admin y Caja por PIN) con botones de prueba de 1-clic.
 
-- [ ] **Step 1: Crear `src/app/login/page.tsx`**
+- [x] **Step 1: Crear `src/app/login/page.tsx`**
 Diseñar interfaz boutique con selector de modo (Dueño / Caja con PIN), inputs con validación visual, botones de prueba rápida para SuperAdmin y Comercio Demo, e indicador de seguridad.
 
-- [ ] **Step 2: Integrar envío de formulario y redirección**
+- [x] **Step 2: Integrar envío de formulario y redirección**
 Conectar el submit con `loginOwner()` y en caso de éxito redirigir con `router.push('/superadmin')` o `router.push('/admin/[slug]')`.
 
-- [ ] **Step 3: Verificar en navegador la pantalla `/login`**
+- [x] **Step 3: Verificar en navegador la pantalla `/login`**
 Probar tanto el login de SuperAdmin como el de dueño de tienda con los botones de demo y verificar que la transición funcione sin errores de consola.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add src/app/login/page.tsx
 git commit -m "feat(ui): add unified boutique login page with role tabs and cashier pin"
