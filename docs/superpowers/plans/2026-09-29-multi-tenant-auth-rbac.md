@@ -170,16 +170,16 @@ git commit -m "feat(onboarding): add self-serve 14-day trial registration wizard
 - Consumes: Lista de comercios de `LoyaltyStore.getComercios()`.
 - Produces: Dashboard maestro con métricas SaaS (MRR estimado, comercios activos, comercios en trial, clientes globales), tabla de comercios con badges y botón "Entrar como comercio".
 
-- [ ] **Step 1: Crear `src/app/superadmin/page.tsx`**
+- [x] **Step 1: Crear `src/app/superadmin/page.tsx`**
 Diseñar la torre de control ejecutiva con métricas clave, buscador en tiempo real, filtro por estado (`trial`, `activo`, `vencido`), y acciones de administración.
 
-- [ ] **Step 2: Implementar funcionalidad "Ver como comercio"**
+- [x] **Step 2: Implementar funcionalidad "Ver como comercio"**
 Botón que permite al SuperAdmin abrir el dashboard de cualquier comercio seleccionado directamente con un banner superior que indica *"Modo Auditoría / Soporte SuperAdmin"*.
 
-- [ ] **Step 3: Verificar vista y navegación de `/superadmin`**
+- [x] **Step 3: Verificar vista y navegación de `/superadmin`**
 Confirmar que liste las tiendas, calcule métricas globales y permita acceder a cualquier panel de tienda.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add src/app/superadmin/page.tsx
 git commit -m "feat(superadmin): add platform control tower dashboard"
