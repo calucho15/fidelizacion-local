@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { LoyaltyStore, DEMO_COMERCIO } from '@/lib/store';
 import { Cliente, Premio, Comercio } from '@/types';
-import { Award, Gift, Sparkles, CheckCircle2, QrCode, ArrowRight, UserCheck, Flame, RotateCcw } from 'lucide-react';
+import { Award, Gift, Sparkles, CheckCircle2, QrCode, ArrowRight, Flame, RotateCcw } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import confetti from 'canvas-confetti';
 
 export default function ClubClientePage() {
   const params = useParams();
-  const slug = (params?.slug as string) || 'cafe-paris';
+  const slug = (params?.slug as string) || 'fabbrica-burger';
   
   const [comercio, setComercio] = useState<Comercio>(DEMO_COMERCIO);
   const [premios, setPremios] = useState<Premio[]>([]);
@@ -26,83 +26,88 @@ export default function ClubClientePage() {
   const [premioRuleta, setPremioRuleta] = useState<string | null>(null);
 
   useEffect(() => {
-    const c = LoyaltyStore.getComercio(slug);
-    setComercio(c);
-    setPremios(LoyaltyStore.getPremios(c.id));
+    async function loadData() {
+      const c = await LoyaltyStore.getComercio(slug);
+      setComercio(c);
+      const pr = await LoyaltyStore.getPremios(c.id);
+      setPremios(pr);
 
-    // Si ya había una sesión guardada en este dispositivo
-    const ultimoTel = localStorage.getItem(`ultimo_telefono_${c.id}`);
-    if (ultimoTel) {
-      const cli = LoyaltyStore.getClientePorTelefono(c.id, ultimoTel);
-      if (cli) setCliente(cli);
+      const ultimoTel = localStorage.getItem(`ultimo_telefono_${c.id}`);
+      if (ultimoTel) {
+        const cli = await LoyaltyStore.getClientePorTelefono(c.id, ultimoTel);
+        if (cli) setCliente(cli);
+      }
     }
+    loadData();
   }, [slug]);
 
-  const handleRegistroOIngreso = (e: React.FormEvent) => {
+  const handleRegistroOIngreso = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!telefono) return;
     setLoading(true);
 
-    setTimeout(() => {
-      const cli = LoyaltyStore.registrarOObtenerCliente(
+    try {
+      const cli = await LoyaltyStore.registrarOObtenerCliente(
         comercio.id,
         nombre.trim() || 'Cliente Fiel',
         telefono
       );
       setCliente(cli);
       localStorage.setItem(`ultimo_telefono_${comercio.id}`, cli.telefono);
-      setLoading(false);
       confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-    }, 400);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCanjear = (premio: Premio) => {
+  const handleCanjear = async (premio: Premio) => {
     if (!cliente) return;
     if (cliente.puntos_actuales < premio.puntos_requeridos) {
       alert(`Te faltan ${premio.puntos_requeridos - cliente.puntos_actuales} puntos para este premio.`);
       return;
     }
 
-    const confirmacion = window.confirm(`¿Quieres canjear "${premio.titulo}" por ${premio.puntos_requeridos} puntos?`);
+    const confirmacion = window.confirm(`¿Querés canjear "${premio.titulo}" por ${premio.puntos_requeridos} puntos?`);
     if (!confirmacion) return;
 
-    const res = LoyaltyStore.canjearPremio(comercio.id, cliente.id, premio.id);
+    const res = await LoyaltyStore.canjearPremio(comercio.id, cliente.id, premio.id);
     if (res.exito && res.canje) {
       confetti({ particleCount: 120, spread: 80 });
       setCliente({ ...cliente, puntos_actuales: cliente.puntos_actuales - premio.puntos_requeridos });
-      setMensajeExito(`¡Premio canjeado! Muestra el código [${res.canje.codigo_canje}] al cajero.`);
+      setMensajeExito(`¡Premio canjeado! Mostrá el código [${res.canje.codigo_canje}] al mozo o cajero.`);
       setTimeout(() => setMensajeExito(''), 7000);
     } else {
       alert(res.mensaje || 'Error al canjear');
     }
   };
 
-  const handleGirarRuleta = () => {
+  const handleGirarRuleta = async () => {
     if (girandoRuleta || !cliente) return;
     setGirandoRuleta(true);
     setPremioRuleta(null);
 
-    const opciones = [20, 50, 100, 30];
+    const opciones = [25, 50, 75, 100];
     const premioGanado = opciones[Math.floor(Math.random() * opciones.length)];
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setGirandoRuleta(false);
       setPremioRuleta(`¡Ganaste +${premioGanado} Puntos extra! 🎉`);
-      const actualizado = LoyaltyStore.sumarPuntos(comercio.id, cliente.id, premioGanado, 0, 'Premio ruleta de la suerte');
+      const actualizado = await LoyaltyStore.sumarPuntos(comercio.id, cliente.id, premioGanado, 0, 'Premio ruleta de la suerte');
       if (actualizado) setCliente({ ...actualizado });
       confetti({ particleCount: 100, spread: 90 });
     }, 1800);
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-4 selection:bg-teal-500 selection:text-white">
-      {/* Contenedor estilo App Móvil */}
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-4 selection:bg-amber-500 selection:text-slate-950">
       <div className="w-full max-w-md bg-slate-800 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         
         {/* Header con marca del comercio */}
         <div 
           className="p-6 relative text-white"
-          style={{ background: `linear-gradient(135deg, ${comercio.color_secundario} 0%, #0d1b2a 100%)` }}
+          style={{ background: `linear-gradient(135deg, ${comercio.color_secundario} 0%, #1e1b4b 100%)` }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -111,13 +116,13 @@ export default function ClubClientePage() {
               </div>
               <div>
                 <h1 className="font-bold text-lg leading-tight">{comercio.nombre}</h1>
-                <p className="text-xs text-teal-400 font-medium tracking-wide uppercase">Club de Beneficios</p>
+                <p className="text-xs text-amber-400 font-medium tracking-wide uppercase">Club de Fidelización</p>
               </div>
             </div>
             {cliente && (
               <button 
                 onClick={() => setMostrarQR(!mostrarQR)}
-                className="p-2.5 bg-slate-700/60 hover:bg-slate-700 text-teal-300 rounded-xl border border-slate-600 transition"
+                className="p-2.5 bg-slate-700/60 hover:bg-slate-700 text-amber-300 rounded-xl border border-slate-600 transition"
                 title="Ver mi QR"
               >
                 <QrCode className="w-5 h-5" />
@@ -140,7 +145,7 @@ export default function ClubClientePage() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tu código para sumar puntos</p>
             <QRCodeSVG value={cliente.telefono} size={150} level="M" />
             <p className="mt-3 font-mono font-bold text-base">{cliente.telefono}</p>
-            <p className="text-xs text-slate-500">Muestra este código al cajero en el mostrador</p>
+            <p className="text-xs text-slate-500">Mostrá este código al mozo o cajero en tu visita</p>
             <button 
               onClick={() => setMostrarQR(false)}
               className="mt-3 text-xs text-slate-600 underline font-medium"
@@ -154,12 +159,12 @@ export default function ClubClientePage() {
         {!cliente ? (
           <div className="p-6 flex flex-col gap-5">
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-teal-500/10 text-teal-400 rounded-2xl mb-3 border border-teal-500/20">
+              <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl mb-3 border border-amber-500/20">
                 <Gift className="w-7 h-7" />
               </div>
               <h2 className="text-xl font-bold">¡Bienvenido a nuestro Club!</h2>
               <p className="text-sm text-slate-400 mt-1">
-                Ingresá tu WhatsApp y llevate <strong className="text-teal-400">{comercio.puntos_bienvenida} puntos de regalo</strong> de inmediato.
+                Ingresá tu WhatsApp y llevate <strong className="text-amber-400">{comercio.puntos_bienvenida} puntos de regalo</strong> al instante.
               </p>
             </div>
 
@@ -168,22 +173,22 @@ export default function ClubClientePage() {
                 <label className="text-xs font-semibold text-slate-400 block mb-1">Tu Nombre</label>
                 <input
                   type="text"
-                  placeholder="Ej: Laura Martínez"
+                  placeholder="Ej: Lucas Martínez"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition"
+                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Tu Teléfono / WhatsApp</label>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Tu WhatsApp / Teléfono</label>
                 <input
                   type="tel"
                   placeholder="Ej: 11 2345 6789"
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 font-mono transition"
+                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono transition"
                   required
                 />
               </div>
@@ -191,7 +196,7 @@ export default function ClubClientePage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-3.5 px-4 bg-teal-500 hover:bg-teal-400 active:scale-95 text-slate-950 font-bold rounded-xl shadow-lg shadow-teal-500/20 transition flex items-center justify-center gap-2"
+                className="w-full mt-2 py-3.5 px-4 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2"
               >
                 {loading ? 'Accediendo...' : 'Comenzar a sumar puntos'}
                 <ArrowRight className="w-4 h-4" />
@@ -199,26 +204,26 @@ export default function ClubClientePage() {
             </form>
 
             <p className="text-center text-xs text-slate-500">
-              Sin descargas de App Store. Tus puntos se guardan automáticamente en este navegador.
+              Conectado a la nube. Podés agregar esta app a tu pantalla de inicio en 1 toque.
             </p>
           </div>
         ) : (
           /* Estado 2: Dashboard del Cliente */
           <div className="p-5 flex flex-col gap-5">
             {/* Tarjeta de Puntos y Racha */}
-            <div className="relative p-5 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl text-slate-950 shadow-xl overflow-hidden">
+            <div className="relative p-5 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl text-slate-950 shadow-xl overflow-hidden">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs font-bold text-teal-950/70 uppercase tracking-wider">Puntos acumulados</p>
+                  <p className="text-xs font-bold text-amber-950/70 uppercase tracking-wider">Puntos acumulados</p>
                   <p className="text-4xl font-extrabold tracking-tight mt-0.5">{cliente.puntos_actuales}</p>
                 </div>
                 <div className="flex items-center gap-1.5 bg-slate-950/20 px-2.5 py-1 rounded-full text-xs font-bold text-slate-950">
-                  <Flame className="w-4 h-4 text-amber-300" />
+                  <Flame className="w-4 h-4 text-orange-950" />
                   <span>Racha: {cliente.racha_visitas} visitas</span>
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-black/10 flex justify-between items-center text-xs font-medium text-teal-950">
+              <div className="mt-4 pt-3 border-t border-black/10 flex justify-between items-center text-xs font-medium text-amber-950">
                 <span>Hola, <strong>{cliente.nombre}</strong></span>
                 <button 
                   onClick={() => setMostrarQR(true)}
@@ -230,35 +235,35 @@ export default function ClubClientePage() {
               </div>
             </div>
 
-            {/* Minijuego: Ruleta de la Suerte */}
-            <div className="p-4 bg-slate-900 border border-teal-500/20 rounded-2xl flex items-center justify-between">
+            {/* Minijuego: Ruleta Gastronómica */}
+            <div className="p-4 bg-slate-900 border border-amber-500/20 rounded-2xl flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-teal-500/10 text-teal-400 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">Ruleta de la Suerte</h4>
+                  <h4 className="text-sm font-bold text-white">Ruleta de Premios</h4>
                   <p className="text-xs text-slate-400">
-                    {premioRuleta ? premioRuleta : 'Probá tu suerte del día'}
+                    {premioRuleta ? premioRuleta : 'Probá tu suerte en cada visita'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleGirarRuleta}
                 disabled={girandoRuleta}
-                className="px-3.5 py-2 bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-slate-950 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
               >
                 <RotateCcw className={`w-3.5 h-3.5 ${girandoRuleta ? 'animate-spin' : ''}`} />
                 {girandoRuleta ? 'Girando...' : 'Girar'}
               </button>
             </div>
 
-            {/* Catálogo de Premios */}
+            {/* Catálogo de Premios Gastronómicos */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-base flex items-center gap-2">
-                  <Award className="w-4 h-4 text-teal-400" />
-                  Premios Disponibles
+                <h3 className="font-bold text-base flex items-center gap-2 text-white">
+                  <Award className="w-4 h-4 text-amber-400" />
+                  Premios para Canjear
                 </h3>
                 <span className="text-xs text-slate-400">{premios.length} premios</span>
               </div>
@@ -273,7 +278,7 @@ export default function ClubClientePage() {
                       key={premio.id}
                       className={`p-3.5 rounded-2xl border transition ${
                         alcanzado 
-                          ? 'bg-slate-900 border-teal-500/50 shadow-md shadow-teal-500/5' 
+                          ? 'bg-slate-900 border-amber-500/50 shadow-md shadow-amber-500/5' 
                           : 'bg-slate-900/60 border-slate-700/60 opacity-80'
                       }`}
                     >
@@ -285,17 +290,17 @@ export default function ClubClientePage() {
                           )}
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${alcanzado ? 'bg-teal-500/20 text-teal-300' : 'bg-slate-800 text-slate-400'}`}>
+                          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${alcanzado ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-800 text-slate-400'}`}>
                             {premio.puntos_requeridos} pts
                           </span>
                         </div>
                       </div>
 
-                      {/* Barra de progreso */}
+                      {/* Barra de progreso psicológica estilo Starbucks */}
                       <div className="mt-3 flex items-center gap-3">
                         <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                           <div 
-                            className={`h-full rounded-full transition-all duration-500 ${alcanzado ? 'bg-teal-400' : 'bg-slate-600'}`}
+                            className={`h-full rounded-full transition-all duration-500 ${alcanzado ? 'bg-amber-400' : 'bg-slate-600'}`}
                             style={{ width: `${progreso}%` }}
                           />
                         </div>
@@ -304,7 +309,7 @@ export default function ClubClientePage() {
                           disabled={!alcanzado}
                           className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
                             alcanzado 
-                              ? 'bg-teal-500 hover:bg-teal-400 text-slate-950 shadow-sm' 
+                              ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm' 
                               : 'bg-slate-800 text-slate-500 cursor-not-allowed'
                           }`}
                         >
