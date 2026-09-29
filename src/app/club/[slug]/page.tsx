@@ -1,10 +1,27 @@
 'use client';
 
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */
+/* Hallmark · macrostructure: physical-pass-stack */
+/* Hallmark · genre: tactile-craft-hospitality */
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { LoyaltyStore, DEMO_COMERCIO } from '@/lib/store';
 import { Cliente, Premio, Comercio } from '@/types';
-import { Award, Gift, Sparkles, CheckCircle2, QrCode, ArrowRight, Flame, RotateCcw } from 'lucide-react';
+import { 
+  Award, 
+  Gift, 
+  Sparkles, 
+  CheckCircle2, 
+  QrCode, 
+  ArrowRight, 
+  Flame, 
+  RotateCcw,
+  Coffee,
+  Ticket,
+  ChevronDown,
+  X
+} from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import confetti from 'canvas-confetti';
 
@@ -77,7 +94,7 @@ export default function ClubClientePage() {
       confetti({ particleCount: 120, spread: 80 });
       setCliente({ ...cliente, puntos_actuales: cliente.puntos_actuales - premio.puntos_requeridos });
       setMensajeExito(`¡Premio canjeado! Mostrá el código [${res.canje.codigo_canje}] al mozo o cajero.`);
-      setTimeout(() => setMensajeExito(''), 7000);
+      setTimeout(() => setMensajeExito(''), 8000);
     } else {
       alert(res.mensaje || 'Error al canjear');
     }
@@ -93,102 +110,119 @@ export default function ClubClientePage() {
 
     setTimeout(async () => {
       setGirandoRuleta(false);
-      setPremioRuleta(`¡Ganaste +${premioGanado} Puntos extra! 🎉`);
+      setPremioRuleta(`¡Ganaste +${premioGanado} Puntos extra! 🎯`);
       const actualizado = await LoyaltyStore.sumarPuntos(comercio.id, cliente.id, premioGanado, 0, 'Premio ruleta de la suerte');
       if (actualizado) setCliente({ ...actualizado });
       confetti({ particleCount: 100, spread: 90 });
-    }, 1800);
+    }, 1600);
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-4 selection:bg-amber-500 selection:text-slate-950">
-      <div className="w-full max-w-md bg-slate-800 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-[#f5f2eb] text-[#1c1917] flex flex-col items-center justify-start p-3 sm:p-6 selection:bg-amber-400 selection:text-stone-950 font-sans">
+      
+      {/* Contenedor PWA formato teléfono / Wallet */}
+      <div className="w-full max-w-md flex flex-col gap-4 pb-12">
         
-        {/* Header con marca del comercio */}
-        <div 
-          className="p-6 relative text-white"
-          style={{ background: `linear-gradient(135deg, ${comercio.color_secundario} 0%, #1e1b4b 100%)` }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center text-2xl border border-white/20">
-                {comercio.logo_url}
-              </div>
-              <div>
-                <h1 className="font-bold text-lg leading-tight">{comercio.nombre}</h1>
-                <p className="text-xs text-amber-400 font-medium tracking-wide uppercase">Club de Fidelización</p>
-              </div>
+        {/* Cabecera del Club / Marca */}
+        <header className="flex items-center justify-between px-2 pt-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl bg-stone-900 text-amber-400 font-display font-extrabold flex items-center justify-center text-xl shadow-sm border border-stone-800">
+              {comercio.logo_url || '🍔'}
             </div>
-            {cliente && (
-              <button 
-                onClick={() => setMostrarQR(!mostrarQR)}
-                className="p-2.5 bg-slate-700/60 hover:bg-slate-700 text-amber-300 rounded-xl border border-slate-600 transition"
-                title="Ver mi QR"
-              >
-                <QrCode className="w-5 h-5" />
-              </button>
-            )}
+            <div>
+              <h1 className="font-display font-bold text-base text-stone-900 leading-tight">
+                {comercio.nombre}
+              </h1>
+              <p className="text-[11px] font-mono-digits tracking-wider uppercase text-amber-800 font-semibold">
+                Club de Miembros & Puntos
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Mensaje de alerta / éxito */}
+          {cliente && (
+            <button 
+              onClick={() => setMostrarQR(!mostrarQR)}
+              className="btn-tactile px-3 py-1.5 bg-stone-900 text-amber-400 hover:text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm border border-stone-800"
+            >
+              <QrCode className="w-4 h-4" />
+              <span>Mi QR</span>
+            </button>
+          )}
+        </header>
+
+        {/* Notificación de Éxito / Canje */}
         {mensajeExito && (
-          <div className="mx-4 mt-4 p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-sm flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-            <span>{mensajeExito}</span>
+          <div className="p-4 bg-emerald-100 border border-emerald-300 rounded-2xl text-emerald-900 text-xs font-semibold flex items-center gap-2.5 shadow-sm animate-in fade-in">
+            <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
+            <div className="flex-1">{mensajeExito}</div>
           </div>
         )}
 
-        {/* Modal / Acordeón de Código QR */}
+        {/* Modal de Tarjeta QR para Mostrador */}
         {mostrarQR && cliente && (
-          <div className="p-6 mx-4 my-3 bg-white text-slate-900 rounded-2xl text-center flex flex-col items-center animate-in fade-in">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tu código para sumar puntos</p>
-            <QRCodeSVG value={cliente.telefono} size={150} level="M" />
-            <p className="mt-3 font-mono font-bold text-base">{cliente.telefono}</p>
-            <p className="text-xs text-slate-500">Mostrá este código al mozo o cajero en tu visita</p>
+          <div className="p-6 bg-white border border-stone-300 rounded-3xl text-center shadow-xl animate-in zoom-in-95 flex flex-col items-center relative">
             <button 
               onClick={() => setMostrarQR(false)}
-              className="mt-3 text-xs text-slate-600 underline font-medium"
+              className="absolute top-4 right-4 p-1.5 text-stone-400 hover:text-stone-700 rounded-full"
             >
-              Cerrar QR
+              <X className="w-4 h-4" />
             </button>
+            <span className="text-[10px] font-mono-digits uppercase tracking-wider text-stone-500 font-bold mb-1">
+              Escaneá en caja o mostrador
+            </span>
+            <h3 className="font-display text-lg font-bold text-stone-900 mb-4">
+              Pase Digital de {cliente.nombre}
+            </h3>
+            
+            <div className="p-3 bg-white border-2 border-stone-900 rounded-2xl shadow-inner mb-3">
+              <QRCodeSVG value={cliente.telefono} size={160} level="M" />
+            </div>
+
+            <p className="font-mono-digits font-bold text-sm text-stone-800">
+              {cliente.telefono}
+            </p>
+            <p className="text-[11px] text-stone-500 mt-1 max-w-xs">
+              Presentá este código al mozo o en la caja al momento de pagar para sumar tus puntos de visita.
+            </p>
           </div>
         )}
 
-        {/* Estado 1: Registro rápido si no hay sesión */}
+        {/* ESTADO 1: Formulario de Registro / Acceso Rápido */}
         {!cliente ? (
-          <div className="p-6 flex flex-col gap-5">
+          <div className="bg-white border border-stone-200/90 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-6">
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl mb-3 border border-amber-500/20">
-                <Gift className="w-7 h-7" />
+              <div className="w-14 h-14 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <Ticket className="w-7 h-7" />
               </div>
-              <h2 className="text-xl font-bold">¡Bienvenido a nuestro Club!</h2>
-              <p className="text-sm text-slate-400 mt-1">
-                Ingresá tu WhatsApp y llevate <strong className="text-amber-400">{comercio.puntos_bienvenida} puntos de regalo</strong> al instante.
+              <h2 className="font-display text-2xl font-bold text-stone-900">
+                Sumá puntos en cada pedido
+              </h2>
+              <p className="text-xs text-stone-600 mt-1.5 max-w-xs mx-auto leading-relaxed">
+                Ingresá tu WhatsApp y llevate <strong className="text-amber-700 font-mono-digits">+{comercio.puntos_bienvenida} puntos de regalo</strong> de bienvenida al instante.
               </p>
             </div>
 
-            <form onSubmit={handleRegistroOIngreso} className="flex flex-col gap-3">
+            <form onSubmit={handleRegistroOIngreso} className="flex flex-col gap-4">
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Tu Nombre</label>
+                <label className="text-xs font-semibold text-stone-700 block mb-1">Tu Nombre y Apellido</label>
                 <input
                   type="text"
-                  placeholder="Ej: Lucas Martínez"
+                  placeholder="Ej: Sofía Benítez"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
+                  className="w-full px-4 py-3 bg-[#fdfcfb] border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 text-sm transition"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-400 block mb-1">Tu WhatsApp / Teléfono</label>
+                <label className="text-xs font-semibold text-stone-700 block mb-1">Tu WhatsApp / Teléfono</label>
                 <input
                   type="tel"
                   placeholder="Ej: 11 2345 6789"
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono transition"
+                  className="w-full px-4 py-3 bg-[#fdfcfb] border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 font-mono-digits text-sm transition"
                   required
                 />
               </div>
@@ -196,79 +230,121 @@ export default function ClubClientePage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-3.5 px-4 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2"
+                className="btn-tactile w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm mt-1"
               >
-                {loading ? 'Accediendo...' : 'Comenzar a sumar puntos'}
+                {loading ? 'Activando pase...' : 'Activar mi Pase y Reclamar Bienvenida'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
 
-            <p className="text-center text-xs text-slate-500">
-              Conectado a la nube. Podés agregar esta app a tu pantalla de inicio en 1 toque.
-            </p>
+            <div className="pt-4 border-t border-stone-100 text-center">
+              <span className="text-[11px] text-stone-500">
+                PWA segura · Guardala en tu pantalla de inicio en Safari o Chrome
+              </span>
+            </div>
           </div>
         ) : (
-          /* Estado 2: Dashboard del Cliente */
-          <div className="p-5 flex flex-col gap-5">
-            {/* Tarjeta de Puntos y Racha */}
-            <div className="relative p-5 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl text-slate-950 shadow-xl overflow-hidden">
-              <div className="flex justify-between items-start">
+          /* ESTADO 2: Pase Físico Digital de Miembro */
+          <div className="flex flex-col gap-4">
+            
+            {/* Tarjeta Física de Miembro (Estilo Cartulina Artesanal) */}
+            <div className="bg-stone-900 text-stone-100 rounded-3xl p-6 shadow-xl border border-stone-800 relative overflow-hidden">
+              <div className="flex justify-between items-start mb-6">
                 <div>
-                  <p className="text-xs font-bold text-amber-950/70 uppercase tracking-wider">Puntos acumulados</p>
-                  <p className="text-4xl font-extrabold tracking-tight mt-0.5">{cliente.puntos_actuales}</p>
+                  <span className="text-[10px] font-mono-digits uppercase tracking-wider text-amber-400 font-bold block">
+                    Pase de Miembro
+                  </span>
+                  <h2 className="font-display text-2xl font-black text-white tracking-tight">
+                    {cliente.nombre}
+                  </h2>
                 </div>
-                <div className="flex items-center gap-1.5 bg-slate-950/20 px-2.5 py-1 rounded-full text-xs font-bold text-slate-950">
-                  <Flame className="w-4 h-4 text-orange-950" />
-                  <span>Racha: {cliente.racha_visitas} visitas</span>
+
+                <div className="flex items-center gap-1.5 bg-stone-800/90 border border-stone-700 px-3 py-1 rounded-full text-xs font-bold text-amber-300">
+                  <Flame className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Racha: {cliente.racha_visitas}</span>
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-black/10 flex justify-between items-center text-xs font-medium text-amber-950">
-                <span>Hola, <strong>{cliente.nombre}</strong></span>
-                <button 
-                  onClick={() => setMostrarQR(true)}
-                  className="flex items-center gap-1 underline font-bold"
-                >
-                  <QrCode className="w-3.5 h-3.5" />
-                  Mostrar QR
-                </button>
+              {/* Saldo de Puntos Tabular */}
+              <div className="bg-stone-950/80 rounded-2xl p-4 border border-stone-800/90 mb-4">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs text-stone-400">Saldo acumulado</span>
+                  <div className="font-display font-black text-3xl text-amber-400 font-mono-digits">
+                    {cliente.puntos_actuales} <span className="text-xs font-normal text-stone-400 font-sans">pts</span>
+                  </div>
+                </div>
+
+                {/* Sellos de fidelización estilo cafetería / burger */}
+                <div className="mt-4 pt-3 border-t border-stone-800 flex justify-between gap-1.5">
+                  {[1, 2, 3, 4, 5].map((step) => {
+                    const filled = (cliente.racha_visitas >= step);
+                    return (
+                      <div 
+                        key={step} 
+                        className={`flex-1 py-1.5 rounded-lg border text-center flex flex-col items-center justify-center gap-1 transition ${
+                          filled 
+                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold' 
+                            : 'bg-stone-900 border-stone-800 text-stone-600'
+                        }`}
+                      >
+                        <span className="text-[9px] font-mono-digits">VISITA {step}</span>
+                        <div className={`w-2.5 h-2.5 rounded-full ${filled ? 'bg-amber-400' : 'bg-stone-700'}`} />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* Botón rápido para abrir QR */}
+              <button 
+                onClick={() => setMostrarQR(true)}
+                className="btn-tactile w-full py-2 bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-bold rounded-xl flex items-center justify-center gap-2 border border-stone-700 transition"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                <span>Mostrar QR para Sumar Puntos en Mesa</span>
+              </button>
             </div>
 
-            {/* Minijuego: Ruleta Gastronómica */}
-            <div className="p-4 bg-slate-900 border border-amber-500/20 rounded-2xl flex items-center justify-between">
+            {/* Minijuego: Ruleta Diaria */}
+            <div className="bg-white border border-stone-200/90 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">Ruleta de Premios</h4>
-                  <p className="text-xs text-slate-400">
-                    {premioRuleta ? premioRuleta : 'Probá tu suerte en cada visita'}
+                  <h4 className="font-display font-bold text-sm text-stone-900">Ruleta de la Suerte</h4>
+                  <p className="text-[11px] text-stone-500 leading-tight">
+                    {premioRuleta ? premioRuleta : 'Girá y ganá puntos extra para tu pedido'}
                   </p>
                 </div>
               </div>
+
               <button
                 onClick={handleGirarRuleta}
                 disabled={girandoRuleta}
-                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+                className="btn-tactile px-3.5 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-stone-950 text-xs font-bold rounded-xl flex items-center gap-1.5 shrink-0 shadow-sm"
               >
                 <RotateCcw className={`w-3.5 h-3.5 ${girandoRuleta ? 'animate-spin' : ''}`} />
-                {girandoRuleta ? 'Girando...' : 'Girar'}
+                <span>{girandoRuleta ? 'Girando...' : 'Girar'}</span>
               </button>
             </div>
 
             {/* Catálogo de Premios Gastronómicos */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-base flex items-center gap-2 text-white">
-                  <Award className="w-4 h-4 text-amber-400" />
-                  Premios para Canjear
-                </h3>
-                <span className="text-xs text-slate-400">{premios.length} premios</span>
+            <div className="bg-white border border-stone-200/90 rounded-3xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-display font-bold text-base text-stone-900 flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-amber-600" />
+                    Premios Disponibles
+                  </h3>
+                  <p className="text-[11px] text-stone-500">Canjealos directamente con tu mozo</p>
+                </div>
+                <span className="text-[11px] font-mono-digits bg-stone-100 px-2 py-0.5 rounded-full text-stone-600 font-semibold">
+                  {premios.length} opciones
+                </span>
               </div>
 
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-3">
                 {premios.map((premio) => {
                   const alcanzado = cliente.puntos_actuales >= premio.puntos_requeridos;
                   const progreso = Math.min(100, Math.round((cliente.puntos_actuales / premio.puntos_requeridos) * 100));
@@ -276,44 +352,53 @@ export default function ClubClientePage() {
                   return (
                     <div 
                       key={premio.id}
-                      className={`p-3.5 rounded-2xl border transition ${
+                      className={`p-4 rounded-2xl border transition ${
                         alcanzado 
-                          ? 'bg-slate-900 border-amber-500/50 shadow-md shadow-amber-500/5' 
-                          : 'bg-slate-900/60 border-slate-700/60 opacity-80'
+                          ? 'bg-amber-50/50 border-amber-300 shadow-sm' 
+                          : 'bg-[#faf8f5] border-stone-200 opacity-90'
                       }`}
                     >
                       <div className="flex justify-between items-start gap-2">
                         <div className="flex-1">
-                          <h4 className="font-bold text-sm text-slate-200">{premio.titulo}</h4>
+                          <h4 className="font-display font-bold text-sm text-stone-900">
+                            {premio.titulo}
+                          </h4>
                           {premio.descripcion && (
-                            <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{premio.descripcion}</p>
+                            <p className="text-xs text-stone-600 mt-0.5 leading-relaxed">
+                              {premio.descripcion}
+                            </p>
                           )}
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${alcanzado ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-800 text-slate-400'}`}>
-                            {premio.puntos_requeridos} pts
-                          </span>
-                        </div>
+                        <span className={`text-xs font-mono-digits font-bold px-2.5 py-0.5 rounded-full shrink-0 ${
+                          alcanzado 
+                            ? 'bg-amber-500 text-stone-950' 
+                            : 'bg-stone-200 text-stone-700'
+                        }`}>
+                          {premio.puntos_requeridos} pts
+                        </span>
                       </div>
 
-                      {/* Barra de progreso psicológica estilo Starbucks */}
-                      <div className="mt-3 flex items-center gap-3">
-                        <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      {/* Barra de progreso psicológica */}
+                      <div className="mt-3.5 flex items-center gap-3">
+                        <div className="flex-1 h-2 bg-stone-200 rounded-full overflow-hidden">
                           <div 
-                            className={`h-full rounded-full transition-all duration-500 ${alcanzado ? 'bg-amber-400' : 'bg-slate-600'}`}
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              alcanzado ? 'bg-amber-500' : 'bg-stone-400'
+                            }`}
                             style={{ width: `${progreso}%` }}
                           />
                         </div>
+
                         <button
                           onClick={() => handleCanjear(premio)}
                           disabled={!alcanzado}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
+                          className={`btn-tactile text-xs font-bold px-3 py-1.5 rounded-xl transition ${
                             alcanzado 
-                              ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm' 
-                              : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                              ? 'bg-stone-900 hover:bg-stone-800 text-amber-300 shadow-sm' 
+                              : 'bg-stone-200 text-stone-400 cursor-not-allowed'
                           }`}
                         >
-                          {alcanzado ? 'Canjear' : `Faltan ${premio.puntos_requeridos - cliente.puntos_actuales}`}
+                          {alcanzado ? 'Canjear Premio' : `Faltan ${premio.puntos_requeridos - cliente.puntos_actuales}`}
                         </button>
                       </div>
                     </div>
@@ -322,18 +407,19 @@ export default function ClubClientePage() {
               </div>
             </div>
 
-            {/* Salir / Cambiar de cuenta */}
+            {/* Cerrar Sesión / Cambiar Teléfono */}
             <div className="text-center pt-2">
               <button 
                 onClick={() => {
                   setCliente(null);
                   localStorage.removeItem(`ultimo_telefono_${comercio.id}`);
                 }}
-                className="text-xs text-slate-500 hover:text-slate-400"
+                className="text-xs text-stone-500 hover:text-stone-800 transition underline"
               >
-                Cerrar sesión / Cambiar de teléfono
+                Cerrar sesión / Cambiar de número
               </button>
             </div>
+
           </div>
         )}
 
