@@ -14,6 +14,8 @@ export interface UsuarioPerfil {
   updated_at?: string;
 }
 
+export type ModeloFidelizacion = 'sellos' | 'gasto' | 'retail';
+
 export interface Comercio {
   id: string;
   slug: string;
@@ -33,6 +35,10 @@ export interface Comercio {
   estado_cuenta?: EstadoCuenta;
   trial_expira_at?: string;
   plan?: PlanComercio;
+  modelo_fidelizacion?: ModeloFidelizacion;
+  meta_sellos?: number; // Ej: 5 cortes para ganar el 6to
+  premio_sellos?: string; // Ej: '6to corte con 50% de descuento'
+  unidad_registro?: string; // Ej: 'Corte', 'Lavado', 'Par de Calzado', 'Consumo'
 }
 
 export interface Cliente {

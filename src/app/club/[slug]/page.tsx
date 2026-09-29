@@ -265,34 +265,94 @@ export default function ClubClientePage() {
                 </div>
               </div>
 
-              {/* Saldo de Puntos Tabular */}
+              {/* Saldo de Puntos o Tarjeta de Sellos Dinámica */}
               <div className="bg-stone-950/80 rounded-2xl p-4 border border-stone-800/90 mb-4">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-xs text-stone-400">Saldo acumulado</span>
+                <div className="flex justify-between items-baseline mb-3">
+                  <span className="text-xs text-stone-400">
+                    {comercio.modelo_fidelizacion === 'sellos' 
+                      ? 'Sellos Acumulados' 
+                      : comercio.modelo_fidelizacion === 'retail'
+                      ? 'Compras de Calzado'
+                      : 'Saldo de Puntos'}
+                  </span>
                   <div className="font-display font-black text-3xl text-amber-400 font-mono-digits">
-                    {cliente.puntos_actuales} <span className="text-xs font-normal text-stone-400 font-sans">pts</span>
+                    {comercio.modelo_fidelizacion === 'sellos' || comercio.modelo_fidelizacion === 'retail' ? (
+                      <span>
+                        {cliente.puntos_actuales} <span className="text-xs font-normal text-stone-400 font-sans">/ {comercio.meta_sellos || 5}</span>
+                      </span>
+                    ) : (
+                      <span>
+                        {cliente.puntos_actuales} <span className="text-xs font-normal text-stone-400 font-sans">pts</span>
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Sellos de fidelización estilo cafetería / burger */}
-                <div className="mt-4 pt-3 border-t border-stone-800 flex justify-between gap-1.5">
-                  {[1, 2, 3, 4, 5].map((step) => {
-                    const filled = (cliente.racha_visitas >= step);
-                    return (
-                      <div 
-                        key={step} 
-                        className={`flex-1 py-1.5 rounded-lg border text-center flex flex-col items-center justify-center gap-1 transition ${
-                          filled 
-                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold' 
-                            : 'bg-stone-900 border-stone-800 text-stone-600'
-                        }`}
-                      >
-                        <span className="text-[9px] font-mono-digits">VISITA {step}</span>
-                        <div className={`w-2.5 h-2.5 rounded-full ${filled ? 'bg-amber-400' : 'bg-stone-700'}`} />
-                      </div>
-                    );
-                  })}
-                </div>
+                {/* Grilla Táctil de Sellos para Barberías, Lavaderos y Servicios */}
+                {(comercio.modelo_fidelizacion === 'sellos' || comercio.modelo_fidelizacion === 'retail') ? (
+                  <div className="pt-2 border-t border-stone-800">
+                    <div className="flex justify-between items-center text-[11px] text-stone-400 mb-2">
+                      <span>Meta: {comercio.premio_sellos || 'Premio al completar la tarjeta'}</span>
+                      <span className="text-amber-400 font-bold font-mono-digits">
+                        {Math.max(0, (comercio.meta_sellos || 5) - cliente.puntos_actuales) === 0 
+                          ? '¡Meta cumplida!' 
+                          : `Faltan ${Math.max(0, (comercio.meta_sellos || 5) - cliente.puntos_actuales)}`}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-5 sm:grid-cols-6 gap-2">
+                      {Array.from({ length: comercio.meta_sellos || 5 }).map((_, idx) => {
+                        const stepNum = idx + 1;
+                        const isStamped = cliente.puntos_actuales >= stepNum;
+                        const isLast = stepNum === (comercio.meta_sellos || 5);
+
+                        return (
+                          <div
+                            key={stepNum}
+                            className={`h-12 rounded-xl border flex flex-col items-center justify-center transition-all ${
+                              isStamped
+                                ? 'bg-amber-500/25 border-amber-400 text-amber-300 font-bold scale-105 shadow-sm'
+                                : isLast
+                                ? 'bg-amber-950/40 border-amber-500/50 text-amber-400/80 animate-pulse'
+                                : 'bg-stone-900 border-stone-800 text-stone-600'
+                            }`}
+                          >
+                            {isStamped ? (
+                              <span className="text-base">✓</span>
+                            ) : isLast ? (
+                              <Gift className="w-4 h-4 text-amber-400" />
+                            ) : (
+                              <span className="text-[11px] font-mono-digits font-bold">{stepNum}</span>
+                            )}
+                            <span className="text-[8px] font-mono-digits uppercase tracking-tight">
+                              {isLast ? 'PREMIO' : (comercio.unidad_registro || 'VISITA')}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  /* Modo Puntos Tradicional / Gastronómico */
+                  <div className="mt-3 pt-3 border-t border-stone-800 flex justify-between gap-1.5">
+                    {[1, 2, 3, 4, 5].map((step) => {
+                      const filled = (cliente.racha_visitas >= step);
+                      return (
+                        <div 
+                          key={step} 
+                          className={`flex-1 py-1.5 rounded-lg border text-center flex flex-col items-center justify-center gap-1 transition ${
+                            filled 
+                              ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold' 
+                              : 'bg-stone-900 border-stone-800 text-stone-600'
+                          }`}
+                        >
+                          <span className="text-[9px] font-mono-digits">VISITA {step}</span>
+                          <div className={`w-2.5 h-2.5 rounded-full ${filled ? 'bg-amber-400' : 'bg-stone-700'}`} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Botón rápido para abrir QR */}

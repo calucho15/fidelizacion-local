@@ -492,74 +492,124 @@ export default function MostradorCajaPage() {
           )}
         </div>
 
-        {/* Sección 2: Acreditar Puntos (Solo si hay cliente) */}
+        {/* Sección 2: Acreditar Puntos o Sellos (Solo si hay cliente) */}
         {clienteEncontrado && (
           <div className="p-6 bg-white border border-stone-200/90 rounded-3xl shadow-sm space-y-6">
             <span className="text-xs font-bold font-mono-digits uppercase tracking-wider text-stone-500 block">
-              2. Cargar Consumo y Asignar Puntos
+              {comercio.modelo_fidelizacion === 'sellos' 
+                ? '2. Marcar Sello de Visita en Mostrador' 
+                : comercio.modelo_fidelizacion === 'retail'
+                ? '2. Registrar Compra de Calzado / Producto'
+                : '2. Cargar Consumo y Asignar Puntos'}
             </span>
 
-            {/* Acciones Rápidas (Sellos de Visita) */}
-            <div>
-              <span className="text-xs font-semibold text-stone-700 block mb-2">
-                Sellos rápidos por visita habitual:
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {[
-                  { pts: 25, label: 'Café / Bebida' },
-                  { pts: 50, label: 'Almuerzo / Menú' },
-                  { pts: 100, label: 'Cena / Combo' },
-                  { pts: 200, label: 'Mesa Grande' },
-                ].map((preset) => (
-                  <button
-                    key={preset.pts}
-                    onClick={() => handleSumarPuntos(preset.pts, undefined, preset.label)}
-                    className="btn-tactile p-3 bg-[#faf9f7] hover:bg-amber-50 border border-stone-200 hover:border-amber-300 rounded-2xl flex flex-col items-center justify-center transition text-center shadow-xs"
-                  >
-                    <span className="font-mono-digits text-xl font-bold text-stone-900">
-                      +{preset.pts}
+            {/* MODO SELLOS / SERVICIOS (Barberías, Lavaderos, Peluquerías, Retail) */}
+            {(comercio.modelo_fidelizacion === 'sellos' || comercio.modelo_fidelizacion === 'retail') ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-amber-50/60 border border-amber-300 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-stone-900 block">
+                      Estado actual: {clienteEncontrado.puntos_actuales} de {comercio.meta_sellos || 5} {comercio.unidad_registro || 'sellos'}
                     </span>
-                    <span className="text-[11px] text-stone-500 font-medium">{preset.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Carga por Monto de Ticket */}
-            <div className="pt-4 border-t border-stone-100">
-              <span className="text-xs font-semibold text-stone-700 block mb-2">
-                O calcular por importe del ticket de caja:
-              </span>
-              <div className="flex flex-col sm:flex-row gap-3 items-center">
-                <div className="relative flex-1 w-full">
-                  <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-                  <input
-                    type="number"
-                    placeholder="Monto total del ticket (ej: 4500)"
-                    value={montoTicket}
-                    onChange={(e) => calcularPuntosPorMonto(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 bg-[#faf9f7] border border-stone-300 rounded-xl text-sm font-mono-digits text-stone-900 focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <div className="px-3.5 py-2 bg-stone-100 border border-stone-200 rounded-xl text-center min-w-[90px]">
-                    <span className="text-[10px] text-stone-500 block uppercase font-mono-digits font-semibold">Puntos</span>
-                    <span className="font-mono-digits font-bold text-base text-amber-700">
-                      {puntosPersonalizados || '0'}
+                    <span className="text-[11px] text-stone-600">
+                      Premio: {comercio.premio_sellos || 'Premio de fidelidad'}
                     </span>
                   </div>
 
+                  {clienteEncontrado.puntos_actuales >= (comercio.meta_sellos || 5) && (
+                    <button
+                      onClick={() => handleSumarPuntos(-(comercio.meta_sellos || 5), undefined, `Canje: ${comercio.premio_sellos}`)}
+                      className="btn-tactile px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition"
+                    >
+                      🎉 Canjear Premio
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
-                    disabled={!puntosPersonalizados || parseInt(puntosPersonalizados) <= 0}
-                    onClick={() => handleSumarPuntos(parseInt(puntosPersonalizados), parseFloat(montoTicket))}
-                    className="btn-tactile px-5 py-2.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-40 text-amber-300 font-bold text-xs rounded-xl flex-1 sm:flex-initial transition shadow-sm"
+                    onClick={() => handleSumarPuntos(1, undefined, `${comercio.unidad_registro || 'Visita'} en local`)}
+                    className="btn-tactile p-4 bg-amber-500 hover:bg-amber-400 text-stone-950 rounded-2xl flex items-center justify-center gap-2 font-display font-bold text-base shadow-sm transition"
                   >
-                    Acreditar Ticket
+                    <Plus className="w-5 h-5" />
+                    <span>+1 {comercio.unidad_registro || 'Sello'} de Atención</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleSumarPuntos(2, undefined, `Atención Doble / Servicio Completo`)}
+                    className="btn-tactile p-4 bg-stone-900 hover:bg-stone-800 text-amber-300 rounded-2xl flex items-center justify-center gap-2 font-display font-bold text-base shadow-sm transition"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>+2 {comercio.unidad_registro || 'Sellos'} (Servicio VIP)</span>
                   </button>
                 </div>
               </div>
-            </div>
+            ) : (
+              /* MODO GASTO / GASTRONOMÍA */
+              <>
+                {/* Acciones Rápidas (Sellos de Visita) */}
+                <div>
+                  <span className="text-xs font-semibold text-stone-700 block mb-2">
+                    Sellos rápidos por visita habitual:
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {[
+                      { pts: 25, label: 'Café / Bebida' },
+                      { pts: 50, label: 'Almuerzo / Menú' },
+                      { pts: 100, label: 'Cena / Combo' },
+                      { pts: 200, label: 'Mesa Grande' },
+                    ].map((preset) => (
+                      <button
+                        key={preset.pts}
+                        onClick={() => handleSumarPuntos(preset.pts, undefined, preset.label)}
+                        className="btn-tactile p-3 bg-[#faf9f7] hover:bg-amber-50 border border-stone-200 hover:border-amber-300 rounded-2xl flex flex-col items-center justify-center transition text-center shadow-xs"
+                      >
+                        <span className="font-mono-digits text-xl font-bold text-stone-900">
+                          +{preset.pts}
+                        </span>
+                        <span className="text-[11px] text-stone-500 font-medium">{preset.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Carga por Monto de Ticket */}
+                <div className="pt-4 border-t border-stone-100">
+                  <span className="text-xs font-semibold text-stone-700 block mb-2">
+                    O calcular por importe del ticket de caja:
+                  </span>
+                  <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <div className="relative flex-1 w-full">
+                      <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                      <input
+                        type="number"
+                        placeholder="Monto total del ticket (ej: 4500)"
+                        value={montoTicket}
+                        onChange={(e) => calcularPuntosPorMonto(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 bg-[#faf9f7] border border-stone-300 rounded-xl text-sm font-mono-digits text-stone-900 focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <div className="px-3.5 py-2 bg-stone-100 border border-stone-200 rounded-xl text-center min-w-[90px]">
+                        <span className="text-[10px] text-stone-500 block uppercase font-mono-digits font-semibold">Puntos</span>
+                        <span className="font-mono-digits font-bold text-base text-amber-700">
+                          {puntosPersonalizados || '0'}
+                        </span>
+                      </div>
+
+                      <button
+                        disabled={!puntosPersonalizados || parseInt(puntosPersonalizados) <= 0}
+                        onClick={() => handleSumarPuntos(parseInt(puntosPersonalizados), parseFloat(montoTicket))}
+                        className="btn-tactile px-5 py-2.5 bg-stone-900 hover:bg-stone-800 disabled:opacity-40 text-amber-300 font-bold text-xs rounded-xl flex-1 sm:flex-initial transition shadow-sm"
+                      >
+                        Acreditar Ticket
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 

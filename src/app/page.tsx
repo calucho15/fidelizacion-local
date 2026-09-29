@@ -68,7 +68,7 @@ export default function LandingComercial() {
               Iniciar Sesión
             </Link>
             <Link
-              href="/registro"
+              href="/empezar"
               className="btn-tactile px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-full transition flex items-center gap-1.5 shadow-sm"
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -111,7 +111,7 @@ export default function LandingComercial() {
 
             <div className="pt-2 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <Link
-                href="/registro"
+                href="/empezar"
                 className="btn-tactile px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 text-sm md:text-base"
               >
                 <Sparkles className="w-4 h-4 text-stone-950" />

@@ -19,6 +19,10 @@ export const DEMO_COMERCIO: Comercio = {
   estado_cuenta: 'trial',
   trial_expira_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
   plan: 'starter',
+  modelo_fidelizacion: 'gasto',
+  meta_sellos: 5,
+  premio_sellos: 'Pinta Artesanal de Regalo',
+  unidad_registro: 'Consumo',
 };
 
 const LOCAL_STORES: Comercio[] = [];
@@ -135,23 +139,118 @@ export const LoyaltyStore = {
       telefono_contacto: comercioData.telefono_contacto || '',
       direccion: comercioData.direccion || '',
       monto_por_punto: comercioData.monto_por_punto || 100,
-      puntos_bienvenida: comercioData.puntos_bienvenida || 50,
+      puntos_bienvenida: comercioData.puntos_bienvenida || (comercioData.modelo_fidelizacion === 'sellos' ? 1 : 50),
       pin_mostrador: comercioData.pin_mostrador || '1234',
       pin_hash: comercioData.pin_hash || comercioData.pin_mostrador || '1234',
       estado_cuenta: comercioData.estado_cuenta || 'trial',
       trial_expira_at: comercioData.trial_expira_at || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       plan: comercioData.plan || 'starter',
+      modelo_fidelizacion: comercioData.modelo_fidelizacion || 'gasto',
+      meta_sellos: comercioData.meta_sellos || 5,
+      premio_sellos: comercioData.premio_sellos || (comercioData.modelo_fidelizacion === 'sellos' ? 'Servicio con 50% de Descuento' : 'Premio Especial de Fidelidad'),
+      unidad_registro: comercioData.unidad_registro || (comercioData.modelo_fidelizacion === 'sellos' ? 'Servicio' : 'Consumo'),
     };
 
+    // Auto-generar premios según el modelo
+    let premiosGenerados: Premio[] = [];
+    if (nuevo.modelo_fidelizacion === 'sellos') {
+      premiosGenerados = [
+        {
+          id: `p-${nuevo.id}-1`,
+          comercio_id: nuevo.id,
+          titulo: nuevo.premio_sellos || 'Servicio con 50% de descuento',
+          descripcion: `Completá ${nuevo.meta_sellos} visitas y obtené tu descuento exclusivo.`,
+          puntos_requeridos: nuevo.meta_sellos || 5,
+          activo: true,
+          orden: 1
+        },
+        {
+          id: `p-${nuevo.id}-2`,
+          comercio_id: nuevo.id,
+          titulo: 'Servicio VIP Completo 100% Gratis',
+          descripcion: 'Premio supremo al alcanzar 10 sellos en tu historial.',
+          puntos_requeridos: (nuevo.meta_sellos || 5) * 2,
+          activo: true,
+          orden: 2
+        }
+      ];
+    } else if (nuevo.modelo_fidelizacion === 'retail') {
+      premiosGenerados = [
+        {
+          id: `p-${nuevo.id}-1`,
+          comercio_id: nuevo.id,
+          titulo: 'Accesorio / Kit de Cuidado de Regalo',
+          descripcion: 'Canjeable en tu próxima compra presentando tu pase.',
+          puntos_requeridos: 100,
+          activo: true,
+          orden: 1
+        },
+        {
+          id: `p-${nuevo.id}-2`,
+          comercio_id: nuevo.id,
+          titulo: nuevo.premio_sellos || '50% OFF en tu próximo par de calzado',
+          descripcion: 'Descuento aplicable a cualquier producto de nueva temporada.',
+          puntos_requeridos: 300,
+          activo: true,
+          orden: 2
+        }
+      ];
+    } else {
+      premiosGenerados = [
+        {
+          id: `p-${nuevo.id}-1`,
+          comercio_id: nuevo.id,
+          titulo: 'Bebida / Postre de Cortesía',
+          descripcion: 'Canjeable con tu consumo en salón.',
+          puntos_requeridos: 150,
+          activo: true,
+          orden: 1
+        },
+        {
+          id: `p-${nuevo.id}-2`,
+          comercio_id: nuevo.id,
+          titulo: nuevo.premio_sellos || 'Plato Principal Especial de Regalo',
+          descripcion: 'Elige tu favorito de nuestra carta.',
+          puntos_requeridos: 400,
+          activo: true,
+          orden: 2
+        }
+      ];
+    }
+
     try {
+      // Intentar guardar en Supabase
       const { data, error } = await supabase
         .from('comercios')
-        .insert(nuevo)
+        .insert({
+          id: nuevo.id,
+          slug: nuevo.slug,
+          nombre: nuevo.nombre,
+          descripcion: nuevo.descripcion,
+          rubro: nuevo.rubro,
+          logo_url: nuevo.logo_url,
+          color_primario: nuevo.color_primario,
+          color_secundario: nuevo.color_secundario,
+          telefono_contacto: nuevo.telefono_contacto,
+          direccion: nuevo.direccion,
+          monto_por_punto: nuevo.monto_por_punto,
+          puntos_bienvenida: nuevo.puntos_bienvenida,
+          pin_mostrador: nuevo.pin_mostrador,
+          pin_hash: nuevo.pin_hash,
+          estado_cuenta: nuevo.estado_cuenta,
+          trial_expira_at: nuevo.trial_expira_at,
+          plan: nuevo.plan,
+        })
         .select()
         .single();
 
       if (data && !error) {
-        return data as Comercio;
+        // También intentar guardar premios en Supabase
+        for (const pr of premiosGenerados) {
+          await supabase.from('premios').insert(pr).maybeSingle();
+        }
+        LOCAL_STORES.push({ ...nuevo, ...data });
+        return { ...nuevo, ...data } as Comercio;
       }
     } catch (e) {
       console.warn('Error guardando comercio en Supabase, guardando en local', e);
