@@ -196,17 +196,17 @@ git commit -m "feat(superadmin): add platform control tower dashboard"
 **Interfaces:**
 - Produces: Barra superior en el dashboard del comercio con información del usuario autenticado, botón de "Cerrar Sesión", gestión del PIN de mostrador, y bloqueo de terminal de caja si no se ha ingresado el PIN.
 
-- [ ] **Step 1: Agregar barra de sesión y logout en `src/app/admin/[slug]/page.tsx`**
+- [x] **Step 1: Agregar barra de sesión y logout en `src/app/admin/[slug]/page.tsx`**
 Mostrar badge del plan (`Trial: X días restantes` o `Pro`), email del dueño y botón para cerrar sesión de forma segura.
 
-- [ ] **Step 2: Proteger `src/app/caja/[slug]/page.tsx` con modal de PIN**
+- [x] **Step 2: Proteger `src/app/caja/[slug]/page.tsx` con modal de PIN**
 Si la sesión de caja no está desbloqueada, presentar el teclado numérico de PIN antes de permitir sumar puntos o entregar premios.
 
-- [ ] **Step 3: Ejecutar build de Next.js (`npm run build`) para verificar compilación estricta**
+- [x] **Step 3: Ejecutar build de Next.js (`npm run build`) para verificar compilación estricta**
 Asegurar que no existan errores de TypeScript ni fallas de compilación.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
-git add src/app/admin/[slug]/page.tsx src/app/caja/[slug]/page.tsx
+git add src/app/admin/[slug]/page.tsx src/app/caja/[slug]/page.tsx docs/superpowers/plans/2026-09-29-multi-tenant-auth-rbac.md
 git commit -m "feat(ui): add session controls, logout and cashier pin lock overlay"
 ```

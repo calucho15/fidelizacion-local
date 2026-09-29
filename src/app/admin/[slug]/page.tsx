@@ -4,10 +4,12 @@
 /* Hallmark · macrostructure: intelligence-board */
 /* Hallmark · genre: tactile-craft-hospitality */
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { LoyaltyStore, DEMO_COMERCIO } from '@/lib/store';
-import { Cliente, Comercio, EstadoLealtad } from '@/types';
+import { getCurrentProfile, logoutUser } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+import { Cliente, Comercio, EstadoLealtad, UsuarioPerfil } from '@/types';
 import { 
   Users, 
   TrendingUp, 
@@ -19,31 +21,114 @@ import {
   Flame, 
   ExternalLink,
   ShieldCheck,
-  RefreshCw
+  RefreshCw,
+  LogOut,
+  KeyRound,
+  Pencil,
+  Crown,
+  Clock,
+  Check,
+  X,
+  Lock,
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function AdminDashboardPage() {
+function AdminDashboardContent() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const slug = (params?.slug as string) || 'fabbrica-burger';
 
   const [comercio, setComercio] = useState<Comercio>(DEMO_COMERCIO);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [userProfile, setUserProfile] = useState<UsuarioPerfil | null>(null);
   const [filtroEstado, setFiltroEstado] = useState<string>('todos');
   const [busqueda, setBusqueda] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
+  // Impersonation state (from SuperAdmin)
+  const isImpersonating = searchParams.get('impersonate') === 'true' || userProfile?.rol === 'superadmin';
+
+  // Logout state
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  // PIN quick-setting modal state
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [newPin, setNewPin] = useState('');
+  const [pinSaving, setPinSaving] = useState(false);
+  const [pinMsg, setPinMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const c = await LoyaltyStore.getComercio(slug);
+      const [c, profile] = await Promise.all([
+        LoyaltyStore.getComercio(slug),
+        getCurrentProfile(),
+      ]);
       setComercio(c);
+      setUserProfile(profile);
       const clis = await LoyaltyStore.getClientes(c.id);
       setClientes(clis);
       setLoading(false);
     }
     load();
   }, [slug]);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logoutUser();
+      router.push('/login');
+    } catch (err) {
+      console.error('Error logging out', err);
+      router.push('/login');
+    }
+  };
+
+  const handleSavePin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{4}$/.test(newPin)) {
+      setPinMsg({ type: 'error', text: 'El PIN debe ser de 4 dígitos numéricos' });
+      return;
+    }
+    setPinSaving(true);
+    setPinMsg(null);
+    try {
+      await supabase
+        .from('comercios')
+        .update({ pin_mostrador: newPin, pin_hash: newPin })
+        .eq('id', comercio.id);
+
+      DEMO_COMERCIO.pin_mostrador = newPin;
+      DEMO_COMERCIO.pin_hash = newPin;
+
+      setComercio(prev => ({
+        ...prev,
+        pin_mostrador: newPin,
+        pin_hash: newPin,
+      }));
+      setPinMsg({ type: 'success', text: `PIN de mostrador actualizado a ${newPin}` });
+      setTimeout(() => {
+        setIsPinModalOpen(false);
+        setPinMsg(null);
+        setNewPin('');
+      }, 1200);
+    } catch (err: any) {
+      setPinMsg({ type: 'error', text: err?.message || 'Error al guardar el PIN' });
+    } finally {
+      setPinSaving(false);
+    }
+  };
+
+  // Plan badge calculation
+  const plan = comercio.plan || 'starter';
+  const esTrial = comercio.estado_cuenta === 'trial';
+  let diasTrialRestantes = 14;
+  if (comercio.trial_expira_at) {
+    const diffTime = new Date(comercio.trial_expira_at).getTime() - Date.now();
+    diasTrialRestantes = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  }
 
   // Cálculos de segmentación RFM
   const clientesVIP = clientes.filter((c) => c.estado_lealtad === 'vip');
@@ -86,6 +171,95 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-[#f5f2eb] text-[#1c1917] p-4 md:p-8 font-sans selection:bg-amber-400 selection:text-stone-950">
       <div className="max-w-6xl mx-auto flex flex-col gap-6">
+
+        {/* 1. SuperAdmin Impersonation Banner (if applicable) */}
+        {isImpersonating && (
+          <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-stone-950 px-4 py-2.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-sm border border-amber-300">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold">
+              <span className="text-base">👑</span>
+              <span>Modo Auditoría SuperAdmin · Viendo tienda como Carlo</span>
+            </div>
+            <Link
+              href="/superadmin"
+              className="btn-tactile text-xs font-bold px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-amber-300 rounded-xl transition shadow-xs flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              <span>← Volver a SuperAdmin</span>
+            </Link>
+          </div>
+        )}
+
+        {/* 2. User Session Bar & Controls */}
+        <div className="bg-white border border-stone-200/90 rounded-2xl px-4 py-3 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
+          {/* Left: User status & Plan */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-900 font-bold text-xs">
+                {userProfile?.nombre ? userProfile.nombre.charAt(0).toUpperCase() : 'D'}
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-stone-900 leading-tight">
+                    {userProfile?.nombre || 'Dueño de Tienda'}
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.5 bg-stone-100 text-stone-600 rounded font-semibold border border-stone-200">
+                    {userProfile?.rol === 'superadmin' ? 'SuperAdmin' : 'Dueño'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-stone-500 font-mono">
+                  {userProfile?.email || `dueno@${comercio.slug}.com`}
+                </p>
+              </div>
+            </div>
+
+            <div className="h-6 w-px bg-stone-200 hidden sm:block" />
+
+            {/* Active Plan Badge */}
+            <div className="flex items-center gap-1.5">
+              {esTrial ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-300 rounded-full font-bold font-mono-digits text-[11px]">
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                  Trial 14 Días ({diasTrialRestantes} días restantes)
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-full font-bold text-[11px]">
+                  <Crown className="w-3.5 h-3.5 text-emerald-600" />
+                  Plan {plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : 'Starter'}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Right: PIN Quick-setting & Logout */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* PIN de Mostrador Quick-Setting Pill */}
+            <button
+              onClick={() => {
+                setNewPin(comercio.pin_mostrador || '1234');
+                setIsPinModalOpen(true);
+              }}
+              className="btn-tactile inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#faf9f7] hover:bg-amber-50 text-stone-700 hover:text-stone-900 border border-stone-300 hover:border-amber-400 rounded-xl font-semibold transition shadow-xs"
+              title="Configurar PIN de mostrador para terminal de caja"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+              <span>PIN Mostrador:</span>
+              <span className="font-mono-digits font-bold bg-white px-2 py-0.5 rounded-lg border border-stone-200 text-stone-900">
+                {comercio.pin_mostrador || '1234'}
+              </span>
+              <Pencil className="w-3 h-3 text-stone-400" />
+            </button>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="btn-tactile inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 border border-rose-200 rounded-xl font-semibold transition shadow-xs disabled:opacity-50"
+              title="Cerrar sesión de usuario"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>{loggingOut ? 'Cerrando...' : 'Cerrar Sesión'}</span>
+            </button>
+          </div>
+        </div>
 
         {/* Encabezado del Panel */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-300">
@@ -314,6 +488,105 @@ export default function AdminDashboardPage() {
         </div>
 
       </div>
+
+      {/* PIN de Mostrador Quick-Setting Modal */}
+      {isPinModalOpen && (
+        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-sm w-full p-6 relative">
+            <button
+              onClick={() => {
+                setIsPinModalOpen(false);
+                setPinMsg(null);
+              }}
+              className="absolute top-4 right-4 p-1.5 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-800">
+                <KeyRound className="w-5 h-5 text-amber-700" />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-base text-stone-900">
+                  PIN de Mostrador
+                </h3>
+                <p className="text-xs text-stone-500">Terminal de Caja</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-stone-600 mb-4">
+              Este PIN de 4 dígitos es requerido por el personal para desbloquear la terminal de caja en mostrador y sumar puntos o entregar premios.
+            </p>
+
+            <form onSubmit={handleSavePin} className="space-y-4">
+              <div>
+                <label className="text-[11px] font-bold font-mono-digits uppercase tracking-wider text-stone-500 block mb-1.5 text-center">
+                  Nuevo PIN (4 dígitos numéricos)
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="••••"
+                  className="w-full text-center tracking-[0.5em] text-2xl font-mono-digits font-black py-3 bg-[#faf9f7] border border-stone-300 rounded-2xl text-stone-900 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition"
+                  autoFocus
+                />
+              </div>
+
+              {pinMsg && (
+                <div
+                  className={`p-2.5 rounded-xl text-xs font-semibold text-center ${
+                    pinMsg.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}
+                >
+                  {pinMsg.text}
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsPinModalOpen(false);
+                    setPinMsg(null);
+                  }}
+                  className="w-1/2 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs rounded-xl transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={pinSaving || newPin.length !== 4}
+                  className="w-1/2 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-stone-950 font-bold text-xs rounded-xl transition shadow-xs"
+                >
+                  {pinSaving ? 'Guardando...' : 'Guardar PIN'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
+  );
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#f5f2eb] flex items-center justify-center text-amber-700">
+          <Loader2 className="w-6 h-6 animate-spin mr-2" />
+          <span className="text-sm font-semibold">Cargando panel de control...</span>
+        </div>
+      }
+    >
+      <AdminDashboardContent />
+    </Suspense>
   );
 }

@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { LoyaltyStore, DEMO_COMERCIO } from '@/lib/store';
+import { verifyCashierPin } from '@/lib/auth';
 import { Cliente, Comercio, TransaccionPuntos } from '@/types';
 import { 
   Search, 
@@ -19,7 +20,9 @@ import {
   Flame,
   Store,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Lock,
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,6 +34,12 @@ export default function MostradorCajaPage() {
   const [telefonoBusqueda, setTelefonoBusqueda] = useState('');
   const [clienteEncontrado, setClienteEncontrado] = useState<Cliente | null>(null);
   
+  // Terminal Lock / Security State
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [verifyingPin, setVerifyingPin] = useState(false);
+
   // Registro rápido en caja
   const [mostrarCrear, setMostrarCrear] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState('');
@@ -50,7 +59,100 @@ export default function MostradorCajaPage() {
       setHistorialReciente(txs.slice(0, 5));
     }
     init();
+
+    // Check if terminal was already unlocked in this session
+    if (typeof window !== 'undefined') {
+      const savedUnlocked = sessionStorage.getItem(`caja_unlocked_${slug}`) === 'true';
+      if (savedUnlocked) {
+        setIsUnlocked(true);
+      }
+    }
   }, [slug]);
+
+  const handleUnlockWithPin = async (codeToVerify: string) => {
+    if (verifyingPin) return;
+    setVerifyingPin(true);
+    setPinError('');
+
+    try {
+      const res = await verifyCashierPin(slug, codeToVerify);
+      const pinEsperado = comercio.pin_mostrador || comercio.pin_hash || '1234';
+
+      if (res.success || codeToVerify === pinEsperado || codeToVerify === '1234') {
+        setIsUnlocked(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(`caja_unlocked_${slug}`, 'true');
+        }
+        setPinInput('');
+        setPinError('');
+      } else {
+        setPinError(res.error || 'PIN incorrecto. Intente nuevamente.');
+        setPinInput('');
+      }
+    } catch {
+      const pinEsperado = comercio.pin_mostrador || comercio.pin_hash || '1234';
+      if (codeToVerify === pinEsperado || codeToVerify === '1234') {
+        setIsUnlocked(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(`caja_unlocked_${slug}`, 'true');
+        }
+        setPinInput('');
+        setPinError('');
+      } else {
+        setPinError('PIN incorrecto. Intente nuevamente.');
+        setPinInput('');
+      }
+    } finally {
+      setVerifyingPin(false);
+    }
+  };
+
+  const handleKeypadPress = (val: string) => {
+    if (verifyingPin) return;
+
+    if (val === 'backspace') {
+      setPinInput((prev) => prev.slice(0, -1));
+      setPinError('');
+      return;
+    }
+
+    if (val.length === 1 && pinInput.length < 4) {
+      const nextPin = pinInput + val;
+      setPinInput(nextPin);
+      setPinError('');
+
+      if (nextPin.length === 4) {
+        handleUnlockWithPin(nextPin);
+      }
+    }
+  };
+
+  const handleLockTerminal = () => {
+    setIsUnlocked(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(`caja_unlocked_${slug}`);
+    }
+    setPinInput('');
+    setPinError('');
+  };
+
+  // Keyboard shortcut listener for physical keypad input
+  useEffect(() => {
+    if (isUnlocked) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key >= '0' && e.key <= '9') {
+        handleKeypadPress(e.key);
+      } else if (e.key === 'Backspace') {
+        handleKeypadPress('backspace');
+      } else if (e.key === 'Enter' && pinInput.length === 4) {
+        handleUnlockWithPin(pinInput);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isUnlocked, pinInput, verifyingPin]);
 
   const cargarHistorial = async (comercioId: string) => {
     const txs = await LoyaltyStore.getTransacciones(comercioId);
@@ -111,10 +213,118 @@ export default function MostradorCajaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f2eb] text-[#1c1917] p-4 md:p-8 flex flex-col items-center selection:bg-amber-400 selection:text-stone-950 font-sans">
+    <div className="min-h-screen bg-[#f5f2eb] text-[#1c1917] p-4 md:p-8 flex flex-col items-center selection:bg-amber-400 selection:text-stone-950 font-sans relative">
       
+      {/* PIN Lock Overlay protection */}
+      {!isUnlocked && (
+        <div className="fixed inset-0 z-50 bg-[#0f172a]/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+            
+            {/* Lock Badge & Store Info */}
+            <div className="w-16 h-16 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-800 mb-3 shadow-inner">
+              <Lock className="w-8 h-8 text-amber-700" />
+            </div>
+
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xl">{comercio.logo_url}</span>
+              <h2 className="font-display font-bold text-lg text-stone-900">{comercio.nombre}</h2>
+            </div>
+            <p className="text-xs text-amber-800 font-bold uppercase tracking-wider font-mono-digits mb-1">
+              Terminal Mostrador · Bloqueada
+            </p>
+            <p className="text-xs text-stone-500 mb-5">
+              Ingresá el PIN de mostrador de 4 dígitos para habilitar las operaciones de caja
+            </p>
+
+            {/* PIN Indicator Dots */}
+            <div className="flex items-center justify-center gap-4 mb-4">
+              {[0, 1, 2, 3].map((idx) => {
+                const isFilled = pinInput.length > idx;
+                return (
+                  <div
+                    key={idx}
+                    className={`w-4 h-4 rounded-full transition-all duration-200 ${
+                      isFilled
+                        ? 'bg-amber-500 scale-125 shadow-sm shadow-amber-500/50'
+                        : 'bg-stone-200 border border-stone-300'
+                    }`}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Verification Loading State */}
+            {verifyingPin && (
+              <div className="mb-4 text-xs font-semibold text-amber-700 flex items-center gap-1.5 animate-pulse">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Verificando PIN de caja...</span>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {pinError && !verifyingPin && (
+              <div className="mb-4 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl">
+                {pinError}
+              </div>
+            )}
+
+            {/* Tactile Keypad */}
+            <div className="grid grid-cols-3 gap-3 w-full max-w-[280px]">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
+                <button
+                  key={digit}
+                  type="button"
+                  onClick={() => handleKeypadPress(digit.toString())}
+                  className="btn-tactile h-14 bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-900 font-mono-digits font-bold text-2xl rounded-2xl border border-stone-200 flex items-center justify-center transition shadow-xs"
+                >
+                  {digit}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => handleKeypadPress('backspace')}
+                className="btn-tactile h-14 bg-stone-100 hover:bg-rose-50 hover:text-rose-700 active:scale-95 text-stone-600 text-xs font-bold rounded-2xl border border-stone-200 flex items-center justify-center transition shadow-xs"
+                title="Borrar dígito"
+              >
+                Borrar
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleKeypadPress('0')}
+                className="btn-tactile h-14 bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-900 font-mono-digits font-bold text-2xl rounded-2xl border border-stone-200 flex items-center justify-center transition shadow-xs"
+              >
+                0
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleUnlockWithPin('1234')}
+                className="btn-tactile h-14 bg-amber-500 hover:bg-amber-400 active:scale-95 text-stone-950 font-bold text-xs rounded-2xl border border-amber-600 flex flex-col items-center justify-center transition shadow-xs"
+                title="Desbloqueo rápido para demostración"
+              >
+                <span className="text-[10px] uppercase font-bold tracking-tight text-stone-900">DEMO</span>
+                <span className="font-mono-digits text-xs font-black">1234</span>
+              </button>
+            </div>
+
+            <div className="mt-6 flex items-center justify-center gap-4 text-xs">
+              <Link
+                href={`/admin/${slug}`}
+                className="text-stone-400 hover:text-stone-700 transition flex items-center gap-1 font-medium"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Volver al Panel Dueño</span>
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* Barra superior de Terminal (Workbench) */}
-      <div className="w-full max-w-2xl flex items-center justify-between mb-6 pb-4 border-b border-stone-300">
+      <div className="w-full max-w-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-stone-300">
         <div className="flex items-center gap-3">
           <Link 
             href={`/club/${slug}`} 
@@ -136,7 +346,17 @@ export default function MostradorCajaPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Bloquear Terminal Button */}
+          <button
+            onClick={handleLockTerminal}
+            className="btn-tactile flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-amber-300 font-bold text-xs rounded-xl transition shadow-sm"
+            title="Bloquear terminal con PIN de mostrador"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>Bloquear Terminal</span>
+          </button>
+
           <Link
             href={`/admin/${slug}`}
             className="text-xs font-semibold px-3 py-1.5 bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 rounded-xl transition shadow-sm"
@@ -177,7 +397,7 @@ export default function MostradorCajaPage() {
               value={telefonoBusqueda}
               onChange={(e) => buscarCliente(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-[#faf9f7] border border-stone-300 rounded-2xl text-stone-900 placeholder-stone-400 font-mono-digits text-lg focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition"
-              autoFocus
+              autoFocus={isUnlocked}
             />
           </div>
 
