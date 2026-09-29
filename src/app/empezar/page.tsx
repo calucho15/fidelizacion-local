@@ -60,13 +60,13 @@ const PRESETS: PresetRubro[] = [
     rubro: 'hamburgueseria',
     modelo: 'gasto',
     titulo: 'Gastronomía, Hamburguesas o Bares',
-    subtitulo: 'Puntos por consumo en pesos + ruleta',
+    subtitulo: 'Puntos por consumo en $ / Bs. (Tasa BCV) + ruleta',
     icono: '🍔',
-    metaDefault: 200,
-    premioDefault: 'Papas Cheddar o Pinta de Regalo',
+    metaDefault: 60,
+    premioDefault: 'Ración de Tequeños o Refresco de Regalo',
     unidadDefault: 'Consumo',
     color: '#f59e0b',
-    ejemploVisual: 'Cada $100 suma 1 punto. Canjean por comidas y bebidas.',
+    ejemploVisual: 'Cada $1 consumido (o su equivalente en Bs. a tasa BCV) suma 1 punto.',
   },
   {
     id: 'retail_calzado',
@@ -329,7 +329,7 @@ export default function OnboardingPruebaPage() {
                 </label>
                 <input
                   type="tel"
-                  placeholder="Ej: +54 9 11 2345 6789"
+                  placeholder="Ej: 0414-1234567 o +58 414 1234567"
                   value={telefonoWhatsApp}
                   onChange={(e) => setTelefonoWhatsApp(e.target.value)}
                   className="w-full px-4 py-3 bg-[#fdfcfb] border border-stone-300 rounded-xl text-stone-900 font-mono-digits text-sm focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition"

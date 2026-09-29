@@ -136,8 +136,8 @@ function AdminDashboardContent() {
   const clientesEnRiesgo = clientes.filter((c) => c.estado_lealtad === 'en_riesgo');
   const clientesInactivos = clientes.filter((c) => c.estado_lealtad === 'inactivo');
 
-  // Estimación de Dinero Recuperado ($22.000 por cliente gastronómico retenido)
-  const dineroRecuperadoEstimado = (clientesVIP.length + clientesCrecimiento.length) * 22000;
+  // Estimación de Ingreso Fidelizado ($45 USD promedio por cliente habitual mensual)
+  const dineroRecuperadoEstimado = (clientesVIP.length + clientesCrecimiento.length) * 45;
 
   // Filtrado de la lista
   const clientesFiltrados = clientes.filter((c) => {
@@ -149,10 +149,12 @@ function AdminDashboardContent() {
   });
 
   const generarEnlaceWhatsAppRescate = (cliente: Cliente) => {
-    const mensaje = `¡Hola ${cliente.nombre}! Te extrañamos en ${comercio.nombre} 🍔🍕. ` +
-      `Vimos que tenés ${cliente.puntos_actuales} puntos listos para canjear y estás muy cerca de tu próximo premio. ` +
-      `Si venís a comer o pedís delivery esta semana te regalamos puntos dobles en tu cuenta. ¡Te esperamos!`;
-    return `https://wa.me/${cliente.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(mensaje)}`;
+    const telLimpio = cliente.telefono.replace(/\D/g, '');
+    const telWhatsApp = telLimpio.startsWith('58') ? telLimpio : telLimpio.startsWith('0') ? `58${telLimpio.slice(1)}` : `58${telLimpio}`;
+    const mensaje = `¡Hola ${cliente.nombre}! Te extrañamos en ${comercio.nombre}. ` +
+      `Vimos que tienes ${cliente.puntos_actuales} puntos listos para canjear y estás muy cerca de tu próximo premio. ` +
+      `Si vienes a visitarnos o pides delivery esta semana te regalamos puntos dobles en tu cuenta. ¡Te esperamos!`;
+    return `https://wa.me/${telWhatsApp}?text=${encodeURIComponent(mensaje)}`;
   };
 
   const getBadgeEstado = (estado: EstadoLealtad) => {
@@ -357,10 +359,10 @@ function AdminDashboardContent() {
               </div>
               <div>
                 <h3 className="font-display font-bold text-sm text-stone-900">
-                  Acción recomendada: Tenés {clientesEnRiesgo.length} clientes en riesgo de no volver
+                  Acción recomendada: Tienes {clientesEnRiesgo.length} clientes en riesgo de no volver
                 </h3>
                 <p className="text-xs text-stone-600 mt-0.5">
-                  Eran comensales habituales pero pasaron más de 20 días sin visitarte. Podés enviarles una invitación de regreso con puntos dobles directamente a su WhatsApp.
+                  Eran clientes habituales pero pasaron más de 20 días sin visitarte. Puedes enviarles una invitación de regreso con puntos dobles directamente a su WhatsApp.
                 </p>
               </div>
             </div>

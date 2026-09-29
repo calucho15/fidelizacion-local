@@ -427,7 +427,7 @@ export default function LandingComercial() {
                 <span className="font-display text-4xl font-black text-stone-900">$35</span>
                 <span className="text-xs text-stone-500 ml-1">/ mes</span>
                 <div className="text-[11px] text-amber-800 font-semibold mt-1">
-                  Setup inicial $70 (incluye diseño y carteles)
+                  En $ USD o Bolívares (Bs.) a Tasa Oficial BCV · Pago Móvil disponible
                 </div>
               </div>
 
@@ -456,7 +456,7 @@ export default function LandingComercial() {
             </div>
 
             <Link
-              href="/registro"
+              href="/empezar"
               className="btn-tactile mt-8 w-full py-3 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-xl flex items-center justify-center gap-2 text-xs transition shadow-sm"
             >
               <span>Comenzar Prueba Gratis (14 Días)</span>

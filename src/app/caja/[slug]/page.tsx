@@ -233,7 +233,7 @@ export default function MostradorCajaPage() {
               Terminal Mostrador · Bloqueada
             </p>
             <p className="text-xs text-stone-500 mb-5">
-              Ingresá el PIN de mostrador de 4 dígitos para habilitar las operaciones de caja
+              Ingresa el PIN de mostrador de 4 dígitos para habilitar las operaciones de caja
             </p>
 
             {/* PIN Indicator Dots */}
@@ -393,7 +393,7 @@ export default function MostradorCajaPage() {
             <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="tel"
-              placeholder="Ingresá o escaneá el número..."
+              placeholder="Ingresa o escanea el celular (ej: 0414-1234567)..."
               value={telefonoBusqueda}
               onChange={(e) => buscarCliente(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-[#faf9f7] border border-stone-300 rounded-2xl text-stone-900 placeholder-stone-400 font-mono-digits text-lg focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition"
@@ -433,7 +433,7 @@ export default function MostradorCajaPage() {
                 />
                 <input
                   type="tel"
-                  placeholder="Teléfono WhatsApp"
+                  placeholder="WhatsApp (ej: 0414-1234567)"
                   value={nuevoTelefono}
                   onChange={(e) => setNuevoTelefono(e.target.value)}
                   className="px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs text-stone-900 font-mono-digits focus:outline-none focus:border-amber-500"
@@ -583,7 +583,7 @@ export default function MostradorCajaPage() {
                       <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                       <input
                         type="number"
-                        placeholder="Monto total del ticket (ej: 4500)"
+                        placeholder="Total consumido en $ (o Bs. a tasa BCV)"
                         value={montoTicket}
                         onChange={(e) => calcularPuntosPorMonto(e.target.value)}
                         className="w-full pl-9 pr-3 py-2.5 bg-[#faf9f7] border border-stone-300 rounded-xl text-sm font-mono-digits text-stone-900 focus:outline-none focus:border-amber-500"
