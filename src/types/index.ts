@@ -1,5 +1,19 @@
 export type EstadoLealtad = 'vip' | 'crecimiento' | 'en_riesgo' | 'inactivo';
 
+export type RolUsuario = 'superadmin' | 'comercio_admin' | 'cajero';
+export type EstadoCuenta = 'trial' | 'activo' | 'suspendido' | 'vencido';
+export type PlanComercio = 'starter' | 'pro' | 'enterprise';
+
+export interface UsuarioPerfil {
+  id: string;
+  email: string;
+  nombre: string;
+  rol: RolUsuario;
+  comercio_id: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Comercio {
   id: string;
   slug: string;
@@ -15,6 +29,10 @@ export interface Comercio {
   monto_por_punto: number; // Ej: cada $100 suma 1 punto
   puntos_bienvenida: number;
   pin_mostrador: string;
+  pin_hash?: string;
+  estado_cuenta?: EstadoCuenta;
+  trial_expira_at?: string;
+  plan?: PlanComercio;
 }
 
 export interface Cliente {
