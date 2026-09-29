@@ -15,7 +15,13 @@ export const DEMO_COMERCIO: Comercio = {
   monto_por_punto: 100,
   puntos_bienvenida: 50,
   pin_mostrador: '1234',
+  pin_hash: '1234',
+  estado_cuenta: 'trial',
+  trial_expira_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+  plan: 'starter',
 };
+
+const LOCAL_STORES: Comercio[] = [];
 
 export const DEMO_PREMIOS: Premio[] = [
   {
@@ -78,7 +84,26 @@ export function calcularSaludCliente(puntosHistoricos: number, rachaVisitas: num
 }
 
 export const LoyaltyStore = {
-  // Obtener Comercio (de Supabase con fallback a demo)
+  // Obtener lista de todos los comercios
+  getComercios: async (): Promise<Comercio[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('comercios')
+        .select('*')
+        .order('nombre', { ascending: true });
+
+      if (data && !error && data.length > 0) {
+        const ids = new Set(data.map((c: any) => c.id));
+        const extra = LOCAL_STORES.filter((s) => !ids.has(s.id));
+        return [...data, ...extra] as Comercio[];
+      }
+    } catch (e) {
+      console.warn('Usando fallback de comercios local', e);
+    }
+    return [DEMO_COMERCIO, ...LOCAL_STORES];
+  },
+
+  // Obtener Comercio por slug (de Supabase con fallback a demo)
   getComercio: async (slug: string): Promise<Comercio> => {
     try {
       const { data, error } = await supabase
@@ -91,7 +116,49 @@ export const LoyaltyStore = {
     } catch (e) {
       console.warn('Usando fallback de comercio local', e);
     }
+    const foundLocal = LOCAL_STORES.find((s) => s.slug === slug);
+    if (foundLocal) return foundLocal;
     return DEMO_COMERCIO;
+  },
+
+  // Crear o registrar un nuevo comercio con trial
+  createComercio: async (comercioData: Partial<Comercio> & { nombre: string; slug: string }): Promise<Comercio> => {
+    const nuevo: Comercio = {
+      id: comercioData.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `com-${Date.now()}`),
+      slug: comercioData.slug,
+      nombre: comercioData.nombre,
+      descripcion: comercioData.descripcion || '',
+      rubro: comercioData.rubro || 'general',
+      logo_url: comercioData.logo_url || '🏪',
+      color_primario: comercioData.color_primario || '#f59e0b',
+      color_secundario: comercioData.color_secundario || '#0f172a',
+      telefono_contacto: comercioData.telefono_contacto || '',
+      direccion: comercioData.direccion || '',
+      monto_por_punto: comercioData.monto_por_punto || 100,
+      puntos_bienvenida: comercioData.puntos_bienvenida || 50,
+      pin_mostrador: comercioData.pin_mostrador || '1234',
+      pin_hash: comercioData.pin_hash || comercioData.pin_mostrador || '1234',
+      estado_cuenta: comercioData.estado_cuenta || 'trial',
+      trial_expira_at: comercioData.trial_expira_at || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+      plan: comercioData.plan || 'starter',
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('comercios')
+        .insert(nuevo)
+        .select()
+        .single();
+
+      if (data && !error) {
+        return data as Comercio;
+      }
+    } catch (e) {
+      console.warn('Error guardando comercio en Supabase, guardando en local', e);
+    }
+
+    LOCAL_STORES.push(nuevo);
+    return nuevo;
   },
 
   // Obtener Premios
@@ -349,3 +416,8 @@ export const LoyaltyStore = {
     return [];
   },
 };
+
+export const getComercios = LoyaltyStore.getComercios;
+export const getComercio = LoyaltyStore.getComercio;
+export const createComercio = LoyaltyStore.createComercio;
+
