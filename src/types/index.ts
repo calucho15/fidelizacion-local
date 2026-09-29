@@ -1,3 +1,5 @@
+export type EstadoLealtad = 'vip' | 'crecimiento' | 'en_riesgo' | 'inactivo';
+
 export interface Comercio {
   id: string;
   slug: string;
@@ -26,6 +28,8 @@ export interface Cliente {
   racha_visitas: number;
   ultima_visita: string;
   fecha_nacimiento?: string;
+  loyalty_score: number; // 0 a 100 basado en RFM
+  estado_lealtad: EstadoLealtad;
 }
 
 export interface Premio {

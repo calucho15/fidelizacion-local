@@ -38,6 +38,12 @@ export default function LandingComercial() {
 
         <div className="flex items-center gap-3">
           <Link
+            href="/admin/cafe-paris"
+            className="text-xs md:text-sm font-semibold text-teal-400 hover:text-teal-300 px-3 py-2 rounded-lg transition hidden md:inline-block"
+          >
+            Panel Gerencial
+          </Link>
+          <Link
             href="/caja/cafe-paris"
             className="text-xs md:text-sm font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-lg transition hidden sm:inline-block"
           >
@@ -45,7 +51,7 @@ export default function LandingComercial() {
           </Link>
           <Link
             href="/club/cafe-paris"
-            className="text-xs md:text-sm font-semibold text-teal-400 hover:text-teal-300 px-3 py-2 rounded-lg transition"
+            className="text-xs md:text-sm font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-lg transition"
           >
             Demo Cliente ↗
           </Link>
@@ -83,20 +89,27 @@ export default function LandingComercial() {
         </p>
 
         {/* Botones de acción principales */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+        <div className="mt-8 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
           <Link
             href="/club/cafe-paris"
-            className="w-full sm:w-auto px-8 py-4 bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold rounded-2xl shadow-xl shadow-teal-500/25 transition flex items-center justify-center gap-2.5 text-base"
+            className="w-full sm:w-auto px-6 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold rounded-2xl shadow-xl shadow-teal-500/25 transition flex items-center justify-center gap-2 text-sm md:text-base"
           >
             <Smartphone className="w-5 h-5" />
-            Probar App del Cliente (Demo)
+            Probar App Cliente
           </Link>
           <Link
             href="/caja/cafe-paris"
-            className="w-full sm:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold rounded-2xl transition flex items-center justify-center gap-2.5 text-base"
+            className="w-full sm:w-auto px-6 py-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold rounded-2xl transition flex items-center justify-center gap-2 text-sm md:text-base"
           >
             <Store className="w-5 h-5 text-teal-400" />
-            Ver Panel de Mostrador (Caja)
+            Panel Mostrador (Caja)
+          </Link>
+          <Link
+            href="/admin/cafe-paris"
+            className="w-full sm:w-auto px-6 py-3.5 bg-slate-900 hover:bg-slate-800 border border-teal-500/40 text-teal-300 font-bold rounded-2xl transition flex items-center justify-center gap-2 text-sm md:text-base"
+          >
+            <TrendingUp className="w-5 h-5 text-teal-400" />
+            Panel Gerencial (Dueño)
           </Link>
         </div>
 
